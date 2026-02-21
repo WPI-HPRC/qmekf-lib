@@ -168,10 +168,10 @@ BLA::Matrix<20, 1> StateEstimator::fastGyroProp(BLA::Matrix<3,1> gyro, float cur
     float dt2 = dt/2.0f;
 
     BLA::Matrix<4, 1> p_q = extractSub(x, QMEKFInds::quat);
-    // TODO combine gyro through vimu
 
     BLA::Matrix<3, 1> unbiased_gyro = gyro - extractSub(x, QMEKFInds::gyroBias);
     // OLD METHOD BROKEN BLA::Matrix<4, 1> new_q = quatMultiply(extractSub(x, QMEKFInds::quat), rotVec2dQuat(unbiased_gyro * dt));
+
 
     BLA::Matrix<4, 1> new_q = {
         (p_q(0) - dt2*(unbiased_gyro(0))*p_q(1) - dt2*(unbiased_gyro(1))*p_q(2) - dt2*(unbiased_gyro(2))*p_q(3)),
@@ -183,6 +183,7 @@ BLA::Matrix<20, 1> StateEstimator::fastGyroProp(BLA::Matrix<3,1> gyro, float cur
     x = setSub(x, QMEKFInds::quat, new_q);
     gyro_prev = unbiased_gyro;
     lastTimes(0) = curr_time;
+
     return x;
 }
 
@@ -192,14 +193,27 @@ BLA::Matrix<20, 1> StateEstimator::fastAccelProp(BLA::Matrix<3, 1> accel, float 
     lastAccelPropTime = curr_time;
 
     BLA::Matrix<3, 1> f_b = accel - extractSub(x, QMEKFInds::accelBias);
-
+    /*
+    DBG.print("f_b: ");
+    DBG.print(f_b(0)); DBG.print(", "); DBG.print(f_b(1)); DBG.print(", "); DBG.println(f_b(2));
+    */
     BLA::Matrix<3, 1> g_i = g_i_ecef(launch_dcmned2ecef);
+    /*
+    DBG.print("g_i: ");
+    DBG.print(g_i(0)); DBG.print(", "); DBG.print(g_i(1)); DBG.print(", "); DBG.println(g_i(2));
+    */
+
+    DBG.print(launch_ecef);
+
     BLA::Matrix<4,1> q = extractSub(x, QMEKFInds::quat);
     BLA::Matrix<3,3> C_bi = quat2DCM(q);
     BLA::Matrix<3,1> f_i  = ~C_bi * f_b;
-    BLA::Matrix<3,1> a_i  = f_i + g_i;
 
-    DBG.print("a_i: "); DBG.print(a_i(0)); DBG.print(','); DBG.print(a_i(1)); DBG.print(','); DBG.println(a_i(2));
+    /*
+    DBG.print("f_i: ");
+    DBG.print(f_i(0)); DBG.print(", "); DBG.print(f_i(1)); DBG.print(", "); DBG.println(f_i(2));
+    */
+    BLA::Matrix<3,1> a_i  = f_i + g_i;
 
     BLA::Matrix<3, 1> v = vel_prev + 0.5f * (a_i + a_i_prev) * dt;
     BLA::Matrix<3, 1> p = pos_prev + 0.5f * (v + vel_prev) * dt;
@@ -209,6 +223,9 @@ BLA::Matrix<20, 1> StateEstimator::fastAccelProp(BLA::Matrix<3, 1> accel, float 
     pos_prev = p;
     accel_prev = f_b;
     lastTimes(1) = curr_time;
+
+    DBG.print(v(0)); DBG.print(", "); DBG.print(v(1)); DBG.print(", "); DBG.print(v(2)); DBG.print(",");
+    DBG.print(p(0)); DBG.print(", "); DBG.print(p(1)); DBG.print(", "); DBG.println(p(2));
 
     x = setSub(x, QMEKFInds::vel, v);
     x = setSub(x, QMEKFInds::pos, p);
@@ -266,7 +283,7 @@ BLA::Matrix<19, 19> StateEstimator::ekfPredict(float curr_time) {
     //Sorry random numbers theyre in the output.txt file from the allan variance tests
     BLA::Matrix<3, 3> gyro_var_diag;
     gyro_var_diag.Fill(0);
-    gyro_var_diag(0, 0) = 14.00553 / 1000.0f * (PI / 180.0f) / sqrtf(dt);
+    gyro_var_diag(0, 0) = 0.00015761;
     gyro_var_diag(1, 1) = 1124.893 / 1000.0f * (PI / 180.0f) / sqrtf(dt);
     gyro_var_diag(2, 2) = 6.534220 / 1000.0f * (PI / 180.0f) / sqrtf(dt);
 

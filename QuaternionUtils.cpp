@@ -170,7 +170,7 @@ BLA::Matrix<4, 1> QuaternionUtils::dcm2quat(const BLA::Matrix<3, 3> &dcm) {
 }
 
 // TODO test 
-/*replacing ts for now
+
 BLA::Matrix<4, 1> QuaternionUtils::quatMultiply(const BLA::Matrix<4, 1> &p, const BLA::Matrix<4, 1> &q) {
     BLA::Matrix<4, 1> quat;
 
@@ -183,7 +183,7 @@ BLA::Matrix<4, 1> QuaternionUtils::quatMultiply(const BLA::Matrix<4, 1> &p, cons
     return quat;
 
 }
-*/
+/*replacing ts for now
 BLA::Matrix<4, 1> QuaternionUtils::quatMultiply(const BLA::Matrix<4, 1> &p,
                                                 const BLA::Matrix<4, 1> &q) {
     BLA::Matrix<4, 1> r;
@@ -198,7 +198,7 @@ BLA::Matrix<4, 1> QuaternionUtils::quatMultiply(const BLA::Matrix<4, 1> &p,
 
     return r;
 }
-
+*/
 // Note: Not super high precision like I want, however unlikely to convert this way
 BLA::Matrix<3, 1> QuaternionUtils::lla2ecef(const BLA::Matrix<3, 1> &lla) {
     float pi = 3.141592;
