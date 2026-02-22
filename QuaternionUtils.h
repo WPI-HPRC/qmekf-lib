@@ -70,7 +70,7 @@ namespace QuaternionUtils {
 
     BLA::Matrix<3, 3> vecs2mat(const BLA::Matrix<3, 1> v1, const BLA::Matrix<3, 1> v2, const BLA::Matrix<3, 1> v3);
 
-    BLA::Matrix<4, 1> triad_BE(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i);
+    BLA::Matrix<4, 1> triad_EB(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i);
 
     // TODO one day implement when have more vector observations
     BLA::Matrix<4, 1> esoq2_EB(const BLA::Matrix<3, 4> v_b, const BLA::Matrix<3, 4> v_i);

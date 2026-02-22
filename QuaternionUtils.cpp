@@ -1,4 +1,4 @@
-#include "QuaternionUtils.h"
+#include "../include/QuaternionUtils.h"
 #include "BasicLinearAlgebra.h"
 #include <cmath>
 #include <iostream>
@@ -67,7 +67,7 @@ BLA::Matrix<3, 3> QuaternionUtils::quat2DCM(const BLA::Matrix<4, 1> &quat) {
     rot(2, 1) = 2 * y * z - 2 * w * x;
     rot(2, 2) = w * w - x * x - y * y + z * z;
 
-    return rot;
+    return ~rot;
 }
 
 // TODO dont be lazy and write
@@ -126,11 +126,12 @@ BLA::Matrix<4, 1> QuaternionUtils::smallAnglerotVec2dQuat(const BLA::Matrix<3, 1
 
 // Works
 BLA::Matrix<4, 1> QuaternionUtils::dcm2quat(const BLA::Matrix<3, 3> &dcm) {
+    BLA::Matrix<3, 3> dcm_t = ~dcm;
     BLA::Matrix<4, 1> q_sq;
-    q_sq(0, 0) = 0.25f * (1.0f + dcm(0, 0) - dcm(1, 1) - dcm(2, 2));
-    q_sq(1, 0) = 0.25f * (1.0f - dcm(0, 0) + dcm(1, 1) - dcm(2, 2));
-    q_sq(2, 0) = 0.25f * (1.0f - dcm(0, 0) - dcm(1, 1) + dcm(2, 2));
-    q_sq(3, 0) = 0.25f * (1.0f + dcm(0, 0) + dcm(1, 1) + dcm(2, 2));
+    q_sq(0, 0) = 0.25f * (1.0f + dcm_t(0, 0) - dcm_t(1, 1) - dcm_t(2, 2));
+    q_sq(1, 0) = 0.25f * (1.0f - dcm_t(0, 0) + dcm_t(1, 1) - dcm_t(2, 2));
+    q_sq(2, 0) = 0.25f * (1.0f - dcm_t(0, 0) - dcm_t(1, 1) + dcm_t(2, 2));
+    q_sq(3, 0) = 0.25f * (1.0f + dcm_t(0, 0) + dcm_t(1, 1) + dcm_t(2, 2));
 
     int max_ind = vecMaxInd(q_sq);
     BLA::Matrix<4, 1> q_ret;
@@ -138,29 +139,29 @@ BLA::Matrix<4, 1> QuaternionUtils::dcm2quat(const BLA::Matrix<3, 3> &dcm) {
     switch (max_ind) {
         case 0:
             q_ret(1, 0) = 4.0 * q_sq(0, 0);
-            q_ret(2, 0) = dcm(0, 1) + dcm(1, 0);
-            q_ret(3, 0) = dcm(2, 0) + dcm(0, 2);
-            q_ret(0, 0) = dcm(1, 2) - dcm(2, 1);
+            q_ret(2, 0) = dcm_t(0, 1) + dcm_t(1, 0);
+            q_ret(3, 0) = dcm_t(2, 0) + dcm_t(0, 2);
+            q_ret(0, 0) = dcm_t(1, 2) - dcm_t(2, 1);
             q_ret = q_ret / (4.0f * sqrt(q_sq(0, 0)));
             break;
         case 1:
-            q_ret(1, 0) = dcm(0, 1) + dcm(1, 0);
+            q_ret(1, 0) = dcm_t(0, 1) + dcm_t(1, 0);
             q_ret(2, 0) = 4.0 * q_sq(1, 0);
-            q_ret(3, 0) = dcm(1, 2) + dcm(2, 1);
-            q_ret(0, 0) = dcm(2, 0) - dcm(0, 2);
+            q_ret(3, 0) = dcm_t(1, 2) + dcm_t(2, 1);
+            q_ret(0, 0) = dcm_t(2, 0) - dcm_t(0, 2);
             q_ret = q_ret / (4.0f * sqrt(q_sq(1, 0)));
             break;
         case 2:
-            q_ret(1, 0) = dcm(2, 0) + dcm(0, 2);
-            q_ret(2, 0) = dcm(1, 2) + dcm(2, 1);
+            q_ret(1, 0) = dcm_t(2, 0) + dcm_t(0, 2);
+            q_ret(2, 0) = dcm_t(1, 2) + dcm_t(2, 1);
             q_ret(3, 0) = 4.0 * q_sq(2, 0);
-            q_ret(0, 0) = dcm(0, 1) - dcm(1, 0);
+            q_ret(0, 0) = dcm_t(0, 1) - dcm_t(1, 0);
             q_ret = q_ret / (4.0f * sqrt(q_sq(2, 0)));
             break;
         case 3:
-            q_ret(1, 0) = dcm(1, 2) - dcm(2, 1);
-            q_ret(2, 0) = dcm(2, 0) - dcm(0, 2);
-            q_ret(3, 0) = dcm(0, 1) - dcm(1, 0);
+            q_ret(1, 0) = dcm_t(1, 2) - dcm_t(2, 1);
+            q_ret(2, 0) = dcm_t(2, 0) - dcm_t(0, 2);
+            q_ret(3, 0) = dcm_t(0, 1) - dcm_t(1, 0);
             q_ret(0, 0) = 4.0 * q_sq(3, 0);
             q_ret = q_ret / (4.0f * sqrt(q_sq(3, 0)));
             break;
@@ -288,21 +289,21 @@ BLA::Matrix<3, 1> QuaternionUtils::qRot(const BLA::Matrix<4, 1> &q, BLA::Matrix<
 BLA::Matrix<3, 1> QuaternionUtils::g_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef) {
     // TODO one day put in the world model and take in position
     BLA::Matrix<3, 1> grav_ned = {0, 0, 9.8};
-    return ~dcm_ned2ecef * grav_ned;
+    return dcm_ned2ecef * grav_ned;
 }
 
 // TODO test when actually implement mag world model
 BLA::Matrix<3, 1> QuaternionUtils::m_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef) {
     // TODO one day put in the world model and take in position. School vals for now
     BLA::Matrix<3, 1> mag_ned = {19.983111, -4.8716, 46.9986145};
-    return ~dcm_ned2ecef * mag_ned;
+    return dcm_ned2ecef * mag_ned;
 }
 
 // TODO test when actually implement grav world model
 BLA::Matrix<3, 1> QuaternionUtils::normal_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef) {
     // TODO one day put in the world model. See g_i notes
     BLA::Matrix<3, 1> normal_ned = {0, 0, -9.8};
-    return ~dcm_ned2ecef * normal_ned;
+    return dcm_ned2ecef * normal_ned;
 }
 
 
@@ -317,7 +318,7 @@ BLA::Matrix<3, 3> QuaternionUtils::vecs2mat(const BLA::Matrix<3, 1> v1, const BL
 
 
 // TODO fix
-BLA::Matrix<4, 1> QuaternionUtils::triad_BE(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i) {
+BLA::Matrix<4, 1> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i) {
     // 1 is important, 2 is secondary
     BLA::Matrix<3, 1> v1_b_norm = v1_b / BLA::Norm(v1_b);
     BLA::Matrix<3, 1> v2_b_norm = v2_b / BLA::Norm(v2_b);
@@ -325,11 +326,11 @@ BLA::Matrix<4, 1> QuaternionUtils::triad_BE(const BLA::Matrix<3, 1> v1_b, const 
     BLA::Matrix<3, 1> v2_i_norm = v2_b / BLA::Norm(v2_i);
 
     // Inertial
-    BLA::Matrix<3, 1> q_r = v1_i_norm;
-    BLA::Matrix<3, 1> r_r = BLA::CrossProduct(v1_i_norm, v2_i_norm) / BLA::Norm(BLA::CrossProduct(v1_i_norm, v2_i_norm));
-    BLA::Matrix<3, 1> s_r = BLA::CrossProduct(q_r, r_r);
+    BLA::Matrix<3, 1> q_i = v1_i_norm;
+    BLA::Matrix<3, 1> r_i = BLA::CrossProduct(v1_i_norm, v2_i_norm) / BLA::Norm(BLA::CrossProduct(v1_i_norm, v2_i_norm));
+    BLA::Matrix<3, 1> s_i = BLA::CrossProduct(q_i, r_i);
 
-    BLA::Matrix<3, 3> M_r = vecs2mat(q_r, r_r, s_r);
+    BLA::Matrix<3, 3> M_i = vecs2mat(q_i, r_i, s_i);
 
 
     // Body
@@ -339,9 +340,9 @@ BLA::Matrix<4, 1> QuaternionUtils::triad_BE(const BLA::Matrix<3, 1> v1_b, const 
 
     BLA::Matrix<3, 3> M_b = vecs2mat(q_b, r_b, s_b);
 
-    BLA::Matrix<3, 3> R_BE = ~(M_r * ~M_b);
+    BLA::Matrix<3, 3> R_EB = M_i * ~M_b;
 
-    return dcm2quat(R_BE);
+    return dcm2quat(R_EB);
 
 }
 

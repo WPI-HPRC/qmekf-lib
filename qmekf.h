@@ -117,15 +117,15 @@ class StateEstimator {
     bool isEKFDiverging();
 
     float getGs();
+
+    BLA::Matrix<3, 3> launch_dcmned2ecef;
+    BLA::Matrix<3, 1> launch_ecef = {1475354.0f, -4490428.0f, 4268181.0f};
     
   private:
     // Identity Matrices
     BLA::Matrix<20, 20> I_20 = BLA::Eye<20, 20>();
 	  BLA::Matrix<19, 19> I_19 = BLA::Eye<19, 19>();
     BLA::Matrix<3, 3> I_3 = BLA::Eye<3, 3>();
-
-    BLA::Matrix<3, 1> launch_ecef = {1475354.0f, -4490428.0f, 4268181.0f};
-    BLA::Matrix<3, 3> launch_dcmned2ecef;
 
     BLA::Matrix<6, 1> lastTimes = {0, 0, 0, 0, 0, 0};
     // Gyro prop, accel prop, accel update, mag update, gps update, baro update

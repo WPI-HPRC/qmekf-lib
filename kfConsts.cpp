@@ -1,4 +1,4 @@
-#include "kfConsts.h"
+#include "../include/kfConsts.h"
 
 namespace earth_consts {
     BLA::Matrix<3, 1> earth_rot_ecef = {0, 0, 0.00007292}; // rad/s
@@ -115,4 +115,9 @@ namespace vimu_const {
     BLA::Matrix<3, 1> mag_var = {1.0f, 2.0f, 3.0f};
     BLA::Matrix<3, 1> accel_bias = {0, 0, 0};
     BLA::Matrix<3, 1> gyro_bias = {0, 0, 0};
+
+
+    BLA::Matrix<3, 3> mag_to_board = {0.0, 1.0f, 0.0, 1.0f, 0.0, 0.0, 0.0, 0.0, 1.0f};
+    BLA::Matrix<3, 3> asm_to_board = {-1.0f, 0.0, 0.0, 0.0, -1.0f, 0.0, 0.0, 0.0, 1.0f};
+
 }

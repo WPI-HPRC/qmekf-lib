@@ -159,4 +159,7 @@ namespace vimu_const {
     extern BLA::Matrix<3, 1> mag_var;
     extern BLA::Matrix<3, 1> accel_bias;
     extern BLA::Matrix<3, 1> gyro_bias;
+
+    extern BLA::Matrix<3, 3> mag_to_board;
+    extern BLA::Matrix<3, 3> asm_to_board;
 }
