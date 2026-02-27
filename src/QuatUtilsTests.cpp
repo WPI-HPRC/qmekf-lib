@@ -87,7 +87,6 @@ void loop() {
                 -0.1710   -0.4698   -0.8660 \
                 0.0429    0.8746   -0.4830 \
                 0.9843   -0.1197   -0.1294");
-        printMatHighDef(triad_BE(v1_b, v2_b, v1_i, v2_i));
 
         Serial.println("Test extractSub. Expected {42.274027, 10}");
         BLA::Matrix<2, 1> inds = {0, 22};
