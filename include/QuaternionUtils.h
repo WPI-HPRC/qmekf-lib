@@ -13,18 +13,6 @@ namespace QuaternionUtils {
 
     BLA::Matrix<3, 3> quat2DCMInv(const BLA::Matrix<4, 1> &quat);
 
-    // Get the up vector from the rotation matrix for the payload
-    // In NED coordinates, this will be the second column of the rotation matrix
-    BLA::Matrix<3,1> getUpVector(const BLA::Matrix<3,3> &rot);
-
-    // Get the forward vector from the rotation matrix for the payload
-    // NED coord == third col
-    BLA::Matrix<3,1> getForwardVector(const BLA::Matrix<3,3> &rot);
-
-    // Get the right vector from the rotation matrix for the payload
-    // NED coord == first col
-    BLA::Matrix<3,1> getRightVector(const BLA::Matrix<3,3> &rot);
-
     // Get skew symmetric of a 3x1 vector
     BLA::Matrix<3, 3> skewSymmetric(const BLA::Matrix<3, 1> &vec);
 
@@ -38,8 +26,6 @@ namespace QuaternionUtils {
 
     // Quaternion multiply
     BLA::Matrix<4, 1> quatMultiply(const BLA::Matrix<4, 1> &p, const BLA::Matrix<4, 1> &q);
-
-    BLA::Matrix<3, 1> lla2ecef(const BLA::Matrix<3, 1> &lla);
 
     BLA::Matrix<3, 3> dcm_ned2ecef(const BLA::Matrix<3, 1> &lla);
 
@@ -66,18 +52,23 @@ namespace QuaternionUtils {
     // BLA::Matrix<3, 1> sun_i_ecef(float t_utc);
 
     // One day...
-    // BLA::Matrix<2, 1> earth_horizon();
+    // BLA::Matrix<3, 1> terrain_map();
 
     BLA::Matrix<3, 3> vecs2mat(const BLA::Matrix<3, 1> v1, const BLA::Matrix<3, 1> v2, const BLA::Matrix<3, 1> v3);
 
     BLA::Matrix<4, 1> triad_EB(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i);
 
-    // TODO one day implement when have more vector observations
-    BLA::Matrix<4, 1> esoq2_EB(const BLA::Matrix<3, 4> v_b, const BLA::Matrix<3, 4> v_i);
+    // One day...
+    // BLA::Matrix<4, 1> esoq2_EB(const BLA::Matrix<3, 4> v_b, const BLA::Matrix<3, 4> v_i);
 
-    BLA::Matrix<3, 1> lla2ecef2(BLA::Matrix<3,1> lla);
+    BLA::Matrix<3, 1> lla2ecef(BLA::Matrix<3,1> lla);
 
     BLA::Matrix<3, 1> ecef2lla(BLA::Matrix<3, 1> ecef);
+
+    BLA::Matrix<4, 1> normalizeQuaternion(BLA::Matrix<4, 1> quat);
+
+    float cosd(float degs);
+    float sind(float degs);
 
     BLA::Matrix<3, 1> combine_variances(const BLA::Matrix<3, 2> &A, const BLA::Matrix<2, 1> w);
 
@@ -148,11 +139,6 @@ namespace QuaternionUtils {
         return x;
     }
 
-    BLA::Matrix<4, 1> normalizeQuaternion(BLA::Matrix<4, 1> quat);
-
-    float cosd(float degs);
-    float sind(float degs);
-
     template <int N, int M>
     BLA::Matrix<N + M, 1> vstack(BLA::Matrix<N, 1> x, BLA::Matrix<M, 1> y) {
         BLA::Matrix<N + M, 1> ret;
@@ -203,6 +189,19 @@ namespace QuaternionUtils {
     }
 
     template <int M, int N>
+    BLA::Matrix<M * N, 1> matToVec(BLA::Matrix<M, N> matrix) {
+        BLA::Matrix<M * N, 1> ret;
+        ret.Fill(0);
+        for (int i = 0; i < M; i++) {
+            for (int i2 = 0; i2 < N; i2++) {
+                ret(M * i + i2, 1) = matrix(i, i2);
+            }
+        }
+        
+        return ret;
+    }
+
+    template <int M, int N>
     void printMatHighDef(BLA::Matrix<M, N> x) {
         Serial.println("{");
         for (int i = 0; i < M; i++) {
@@ -214,19 +213,6 @@ namespace QuaternionUtils {
             Serial.println("}");
         }
         Serial.println("}\n");
-    }
-
-    template <int M, int N>
-    BLA::Matrix<M * N, 1> matToVec(BLA::Matrix<M, N> matrix) {
-        BLA::Matrix<M * N, 1> ret;
-        ret.Fill(0);
-        for (int i = 0; i < M; i++) {
-            for (int i2 = 0; i2 < N; i2++) {
-                ret(M * i + i2, 1) = matrix(i, i2);
-            }
-        }
-        
-        return ret;
     }
 
 }
