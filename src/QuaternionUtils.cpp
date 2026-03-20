@@ -274,9 +274,10 @@ BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
     printMatHighDef(M_b);
 
     Serial.println("M_b^T:");
-    printMatHighDef(~M_b);
+    BLA::Matrix<3, 3> M_b_t = ~M_b;
+    printMatHighDef(M_b_t);
 
-    BLA::Matrix<3, 3> R_EB = M_i * ~M_b;
+    BLA::Matrix<3, 3> R_EB = M_i * M_b_t;
 
     return R_EB;
 
