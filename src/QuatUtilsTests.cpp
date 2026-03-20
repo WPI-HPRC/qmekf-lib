@@ -121,7 +121,9 @@ void loop() {
         // TODO combine variances
         // TODO fuse measurements
 
-        // TODO pinv
+        Serial.println("Test pinv");
+        BLA::Matrix<3, 3> test_pinv = {1, 2, 3, 0, 1, 4, 5, 6, 0};
+        printMatHighDef(pinv(test_pinv));
 
 
         Serial.println("Test extractSub. Expected {42.274027, 10}");

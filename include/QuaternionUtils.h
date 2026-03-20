@@ -68,7 +68,7 @@ namespace QuaternionUtils {
     // Works
     BLA::Matrix<3, 3> vecs2mat(const BLA::Matrix<3, 1> v1, const BLA::Matrix<3, 1> v2, const BLA::Matrix<3, 1> v3);
 
-    // TODO: Not working. Test vecs2mat first and make sure that isn't the issue
+    // TODO: Not working
     BLA::Matrix<3, 3> triad_EB(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i);
 
     // One day...

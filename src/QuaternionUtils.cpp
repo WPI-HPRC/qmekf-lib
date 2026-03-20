@@ -259,6 +259,9 @@ BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
 
     BLA::Matrix<3, 3> M_i = vecs2mat(q_i, r_i, s_i);
 
+    Serial.println("M_i:");
+    printMatHighDef(M_i);
+
 
     // Body
     BLA::Matrix<3, 1> q_b = v1_b_norm;
@@ -266,6 +269,12 @@ BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
     BLA::Matrix<3, 1> s_b = BLA::CrossProduct(q_b, r_b);
 
     BLA::Matrix<3, 3> M_b = vecs2mat(q_b, r_b, s_b);
+
+    Serial.println("M_b:");
+    printMatHighDef(M_b);
+
+    Serial.println("M_b^T:");
+    printMatHighDef(~M_b);
 
     BLA::Matrix<3, 3> R_EB = M_i * ~M_b;
 

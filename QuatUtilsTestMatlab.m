@@ -105,6 +105,9 @@ ecef2lla(school_ecef')
 disp("Test normalizeQuaterion. Initial quat: {21.232, 40.243, 50.233, 19.232}\n Expected: {0.3014, 0.5712, 0.7130, 0.2730}")
 random_unnormed_quat / norm(random_unnormed_quat)
 
+disp("Test pinv")
+pinv([1, 2, 3; 0, 1, 4; 5, 6, 0])
+
 disp("Test cross prod");
 cross(random_vec, v1_b)
 
