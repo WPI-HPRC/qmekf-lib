@@ -132,7 +132,7 @@ void loop() {
         printMatHighDef(extractDiag(random_mat));
 
         Serial.println("Test BLA cross prod");
-        printMatHighDef(BLA::Cross(random_vec, v1_b));
+        printMatHighDef(BLA::CrossProduct(random_vec, v1_b));
 
         Serial.println("Test norm");
         printMatHighDef(v1_b / BLA::Norm(v1_b));
