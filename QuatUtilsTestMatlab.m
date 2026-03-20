@@ -91,8 +91,8 @@ disp("Test vecs2mat")
 [v1_b, v2_b, v1_i]
 
 
-disp("Test triad_EB: Test vecs displayed here in code. Expected: -0.1710   -0.4698   -0.8660 0.0429    0.8746   -0.4830 0.9843   -0.1197   -0.1294")
-rotm2quat(initialOrientationTRIAD(v1_b, v2_b, v1_i, v2_i))
+disp("Test triad_EB:")
+initialOrientationTRIAD(v1_b, v2_b, v1_i, v2_i)
 
 
 disp("Test lla2ecef: School LLA")
@@ -105,7 +105,7 @@ ecef2lla(school_ecef')
 disp("Test normalizeQuaterion. Initial quat: {21.232, 40.243, 50.233, 19.232}\n Expected: {0.3014, 0.5712, 0.7130, 0.2730}")
 random_unnormed_quat / norm(random_unnormed_quat)
 
-disp("Test BLA cross prod");
+disp("Test cross prod");
 cross(random_vec, v1_b)
 
 disp("Test norm");

@@ -245,7 +245,7 @@ BLA::Matrix<3, 3> QuaternionUtils::vecs2mat(const BLA::Matrix<3, 1> v1, const BL
 }
 
 
-BLA::Matrix<4, 1> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i) {
+BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i) {
     // 1 is important, 2 is secondary
     BLA::Matrix<3, 1> v1_b_norm = v1_b / BLA::Norm(v1_b);
     BLA::Matrix<3, 1> v2_b_norm = v2_b / BLA::Norm(v2_b);
@@ -269,7 +269,7 @@ BLA::Matrix<4, 1> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
 
     BLA::Matrix<3, 3> R_EB = M_i * ~M_b;
 
-    return dcm2quat(R_EB);
+    return R_EB;
 
 }
 

@@ -65,10 +65,11 @@ namespace QuaternionUtils {
     // One day...
     // BLA::Matrix<3, 1> terrain_map();
 
+    // Works
     BLA::Matrix<3, 3> vecs2mat(const BLA::Matrix<3, 1> v1, const BLA::Matrix<3, 1> v2, const BLA::Matrix<3, 1> v3);
 
     // TODO: Not working. Test vecs2mat first and make sure that isn't the issue
-    BLA::Matrix<4, 1> triad_EB(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i);
+    BLA::Matrix<3, 3> triad_EB(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i);
 
     // One day...
     // BLA::Matrix<4, 1> esoq2_EB(const BLA::Matrix<3, 4> v_b, const BLA::Matrix<3, 4> v_i);
