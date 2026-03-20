@@ -135,9 +135,9 @@ void loop() {
         printMatHighDef(BLA::Cross(random_vec, v1_b));
 
         Serial.println("Test norm");
-        printMatHighDef(v1_b / norm(v1_b));
+        printMatHighDef(v1_b / BLA::Norm(v1_b));
 
-        
+
 
 
 
