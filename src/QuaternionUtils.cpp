@@ -134,12 +134,16 @@ BLA::Matrix<4, 1> QuaternionUtils::dcm2quat(const BLA::Matrix<3, 3> &dcm) {
 BLA::Matrix<4, 1> QuaternionUtils::quatMultiply(const BLA::Matrix<4, 1> &p, const BLA::Matrix<4, 1> &q) {
     BLA::Matrix<4, 1> quat;
 
-    quat(0, 0) = p(0, 0) * q(0, 0) - p(1, 0) * q(1, 0) - p(2, 0) * q(2, 0) - p(3, 0) * q(3, 0);
-    quat(1, 0) = p(0, 0) * q(1, 0) + p(1, 0) * q(0, 0) + p(2, 0) * q(3, 0) - p(3, 0) * q(2, 0);
-    quat(2, 0) = p(0, 0) * q(2, 0)  - p(1, 0) * q(3, 0) + p(2, 0) * q(1, 0) + p(3, 0) * q(1, 0);
-    quat(3, 0) = p(0, 0) * q(3, 0) + p(1, 0) * q(2, 0) - p(2, 0) * q(1, 0) + p(3, 0) * q(3, 0);
+    // quat(0, 0) = p(0, 0) * q(0, 0) - p(1, 0) * q(1, 0) - p(2, 0) * q(2, 0) - p(3, 0) * q(3, 0);
+    // quat(1, 0) = p(0, 0) * q(1, 0) + p(1, 0) * q(0, 0) + p(2, 0) * q(3, 0) - p(3, 0) * q(2, 0);
+    // quat(2, 0) = p(0, 0) * q(2, 0)  - p(1, 0) * q(3, 0) + p(2, 0) * q(1, 0) + p(3, 0) * q(1, 0);
+    // quat(3, 0) = p(0, 0) * q(3, 0) + p(1, 0) * q(2, 0) - p(2, 0) * q(1, 0) + p(3, 0) * q(3, 0);
 
-    // Should we always normalize here?
+    quat(0, 0) = p(0, 0) * q(0, 0) - p(1, 0) * q(1, 0) - p(2, 0) * q(2, 0) - p(3, 0) * q(3, 0);
+    quat(1, 0) = p(0, 0) * q(1, 0) + p(1, 0) * q(0, 0) - p(2, 0) * q(3, 0) + p(3, 0) * q(2, 0);
+    quat(2, 0) = p(0, 0) * q(2, 0) + p(1, 0) * q(3, 0) + p(2, 0) * q(0, 0) - p(3, 0) * q(1, 0);
+    quat(3, 0) = p(0, 0) * q(3, 0) - p(1, 0) * q(2, 0) + p(2, 0) * q(1, 0) + p(3, 0) * q(0, 0);
+
     return quat;
 
 }
@@ -166,15 +170,15 @@ BLA::Matrix<3, 1> QuaternionUtils::ned2ecefVec(const BLA::Matrix<3, 1> &ned_meas
 }
 
 
-BLA::Matrix<3, 1> quat2RPY(const BLA::Matrix<4, 1> &p) {
+BLA::Matrix<3, 1> QuaternionUtils::quat2RPY(const BLA::Matrix<4, 1> &p) {
     // Not matlab, but from https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-    // XYZ RPY
+    // XYZ RPY but converted for ZYX order. TODO eventually rewrite to be more efficient
     BLA::Matrix<3, 1> RPY = {0, 0, 0};
 
     // roll (x-axis rotation)
     double sinr_cosp = 2 * (p(0) * p(1) + p(2) * p(3));
     double cosr_cosp = 1 - 2 * (p(1) * p(1) + p(2) * p(2));
-    RPY(0) = std::atan2(sinr_cosp, cosr_cosp);
+    RPY(2) = std::atan2(sinr_cosp, cosr_cosp);
 
     // pitch (y-axis rotation)
     double sinp = std::sqrt(1 + 2 * (p(0) * p(2) - p(1) * p(3)));
@@ -184,7 +188,7 @@ BLA::Matrix<3, 1> quat2RPY(const BLA::Matrix<4, 1> &p) {
     // yaw (z-axis rotation)
     double siny_cosp = 2 * (p(0) * p(3) + p(1) * p(2));
     double cosy_cosp = 1 - 2 * (p(2) * p(2) + p(3) * p(3));
-    RPY(2) = std::atan2(siny_cosp, cosy_cosp);
+    RPY(0) = std::atan2(siny_cosp, cosy_cosp);
 
     return RPY;
 }
@@ -233,7 +237,7 @@ BLA::Matrix<3, 1> QuaternionUtils::normal_i_ecef(const BLA::Matrix<3, 3> dcm_ned
 
 BLA::Matrix<3, 3> QuaternionUtils::vecs2mat(const BLA::Matrix<3, 1> v1, const BLA::Matrix<3, 1> v2, const BLA::Matrix<3, 1> v3) {
     // TODO eventually replace with just using hstack
-    BLA::Matrix<3, 3> ret = {v1(0, 0), v2(0), v3(0, 0),
+    BLA::Matrix<3, 3> ret = {v1(0, 0), v2(0, 0), v3(0, 0),
                             v1(1, 0), v2(1, 0), v3(1, 0),
                             v1(2, 0), v2(2, 0), v3(2, 0)};
 
@@ -276,11 +280,11 @@ BLA::Matrix<3,1> QuaternionUtils::lla2ecef(BLA::Matrix<3,1> lla) {
     double lat = lla(0);
     double lon = lla(1);
     double alt = lla(2);
-    double n = a / std::sqrt(1 - e2 * std::sin(lat) * std::sin(lat));
+    double n = a / std::sqrt(1.0f - e2 * sind(lat) * sind(lat));
     BLA::Matrix<3,1> ecef;
-    ecef(0) = (n + alt) * std::cos(lat) * std::cos(lon);
-    ecef(1) = (n + alt) * std::cos(lat) * std::sin(lon);
-    ecef(2) = (n * (1 - e2) + alt) * std::sin(lat);
+    ecef(0) = (n + alt) * cosd(lat) * cosd(lon);
+    ecef(1) = (n + alt) * cosd(lat) * sind(lon);
+    ecef(2) = (n * (1 - e2) + alt) * sind(lat);
     return ecef;
 }
 
@@ -333,6 +337,9 @@ BLA::Matrix<3, 1> QuaternionUtils::ecef2lla(BLA::Matrix<3, 1> ecef) {
     if (z < 0.0) {
         lla(0) *= -1.0;
     }
+
+    lla(0) = lla(0) * (180.0 / M_PI);
+    lla(1) = lla(1) * (180.0 / M_PI);
     return lla;
 }
 

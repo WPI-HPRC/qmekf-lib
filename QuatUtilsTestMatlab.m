@@ -67,7 +67,7 @@ disp("Test ned2ecefVec");
 dcmecef2ned(school_lla(1), school_lla(2)) * some_ned + school_ecef
 
 disp("Test quat2RPY: Quat: {0.9344, 0.2435, 0.2435, 0.0907}")
-quat2eul(random_quat);
+quat2eul(random_quat, "ZYX")
 
 disp("Test quatConj: Test quat: {0.9344    0.2435    0.2435    0.0907}. Expected quat: 0.9344   -0.2435   -0.2435   -0.0907")
 quatconj(random_quat)
@@ -76,23 +76,27 @@ disp("Test qRot: Quat: {0.9344, 0.2435, 0.2435, 0.0907} Vec: {0.3042, 0.5248, 0.
 qRot = quatrotate(quatconj(random_quat), random_vec')
 
 disp("Test qInvRot: Quat: {0.9344, 0.2435, 0.2435, 0.0907} Vec: {0.3042, 0.5248, 0.4319}. Result:");
-qInvRot = quatrotate(quatconj(random_quat), random_vec')
+qInvRot = quatrotate(random_quat, random_vec')
 
 disp("Test g_i_ecef using school coords. Expected: TODO")
-dcmecef2ned(school_lla(1), school_lla(2))' * [0; 0; -1.0 * gravitywgs84(school_lla(3), school_lla(1))]
+dcmecef2ned(school_lla(1), school_lla(2))' * [0; 0; gravitywgs84(school_lla(3), school_lla(1))]
 
 disp("Test m_i_ecef using school coords. Expected: TODO")
 dcmecef2ned(school_lla(1), school_lla(2))' * (igrfmagm(school_lla(3), school_lla(1), school_lla(2), 2026) / 1000.0)'
 
 disp("Test normal_i_ecef using school coords. Expected: TODO")
-dcmecef2ned(school_lla(1), school_lla(2))' * [0; 0; gravitywgs84(school_lla(3), school_lla(1))]
+dcmecef2ned(school_lla(1), school_lla(2))' * [0; 0; -1.0 * gravitywgs84(school_lla(3), school_lla(1))]
+
+disp("Test vecs2mat")
+[v1_b, v2_b, v1_i]
+
 
 disp("Test triad_EB: Test vecs displayed here in code. Expected: -0.1710   -0.4698   -0.8660 0.0429    0.8746   -0.4830 0.9843   -0.1197   -0.1294")
-initialOrientationTRIAD(v1_b, v2_b, v1_i, v2_i)
+rotm2quat(initialOrientationTRIAD(v1_b, v2_b, v1_i, v2_i))
 
 
 disp("Test lla2ecef: School LLA")
-lla2ecef(school_lla')
+lla2ecef(school_lla') / 1000.0
 
 disp("Test ecef2lla: School ECEF")
 ecef2lla(school_ecef')
@@ -100,4 +104,10 @@ ecef2lla(school_ecef')
 
 disp("Test normalizeQuaterion. Initial quat: {21.232, 40.243, 50.233, 19.232}\n Expected: {0.3014, 0.5712, 0.7130, 0.2730}")
 random_unnormed_quat / norm(random_unnormed_quat)
+
+disp("Test BLA cross prod");
+cross(random_vec, v1_b)
+
+disp("Test norm");
+v1_b / norm(v1_b)
 

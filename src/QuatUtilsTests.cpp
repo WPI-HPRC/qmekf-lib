@@ -86,20 +86,19 @@ void loop() {
         Serial.println("Test qInvRot: Quat: {0.9344, 0.2435, 0.2435, 0.0907} Vec: {0.3042, 0.5248, 0.4319}. Expected: {0.5248, 0.4319, 0.3042}");
         printMatHighDef(qInvRot(random_quat, random_vec));
 
-        Serial.println("Test g_i_ecef using school coords. Expected: TODO");
+        Serial.println("Test g_i_ecef using school coords.");
         printMatHighDef(g_i_ecef(dcm_ned2ecef(school_lla)));
 
-        Serial.println("Test m_i_ecef using school coords. Expected: TODO");
+        Serial.println("Test m_i_ecef using school coords.");
         printMatHighDef(m_i_ecef(dcm_ned2ecef(school_lla)));
 
-        Serial.println("Test normal_i_ecef using school coords. Expected: TODO");
+        Serial.println("Test normal_i_ecef using school coords.");
         printMatHighDef(normal_i_ecef(dcm_ned2ecef(school_lla)));
-        // test vecs2mat
+        
+        Serial.println("Test vecs2mat.");
+        printMatHighDef(vecs2mat(v1_b, v2_b, v1_i));
 
-
-
-
-        Serial.println("Test triad_EB: Test vecs displayed here in code");
+        Serial.println("Test triad_EB.");
         printMatHighDef(triad_EB(v1_b, v2_b, v1_i, v2_i));
 
         Serial.println("Test lla2ecef: School LLA");
@@ -131,6 +130,17 @@ void loop() {
 
         Serial.println("Test extractDiag. Expected: {0.8662, 0.9699, 0.1834}");
         printMatHighDef(extractDiag(random_mat));
+
+        Serial.println("Test BLA cross prod");
+        printMatHighDef(BLA::Cross(random_vec, v1_b));
+
+        Serial.println("Test norm");
+        printMatHighDef(v1_b / norm(v1_b));
+
+        
+
+
+
 
 
         // TODO toDiag

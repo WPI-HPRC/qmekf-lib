@@ -120,11 +120,8 @@ class SplitStateEstimator {
     template<int rows>
     BLA::Matrix<10, 1> ekfPVCalcErrorInject(BLA::Matrix<rows, 1> &sens_reading, BLA::Matrix<rows, 13> H, BLA::Matrix<rows, 1> h, BLA::Matrix<rows, rows> R);
     
-    
 
 
-    
-    
   private:
     // School stats
     BLA::Matrix<3, 3> launch_dcmned2ecef = {-0.2100, 0.9500, -0.2310, 0.6391, 0.3121, 0.7030, 0.7399, 0, -0.6727};

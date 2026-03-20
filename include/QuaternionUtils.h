@@ -8,44 +8,55 @@ namespace QuaternionUtils {
     // quat SHOULD be normalized
     BLA::Matrix<3,3> quatToRot(const BLA::Matrix<4,1> &quat);
 
-    // Quaternion to DCM
+    // Works
     BLA::Matrix<3, 3> quat2DCM(const BLA::Matrix<4, 1> &quat);
 
+    // Works
     BLA::Matrix<3, 3> quat2DCMInv(const BLA::Matrix<4, 1> &quat);
 
-    // Get skew symmetric of a 3x1 vector
+    // Works
     BLA::Matrix<3, 3> skewSymmetric(const BLA::Matrix<3, 1> &vec);
 
-    // Rotation vector to quaternion
+    // Works
     BLA::Matrix<4, 1> rotVec2dQuat(const BLA::Matrix<3, 1> &vec);
 
-    // Small angle rot vec to quat
+    // Works
     BLA::Matrix<4, 1> smallAnglerotVec2dQuat(const BLA::Matrix<3, 1> &vec);
 
+    // Works
     BLA::Matrix<4, 1> dcm2quat(const BLA::Matrix<3, 3> &dcm);
 
-    // Quaternion multiply
+    // TODO: A little off. Re-run
     BLA::Matrix<4, 1> quatMultiply(const BLA::Matrix<4, 1> &p, const BLA::Matrix<4, 1> &q);
 
+    // Works
     BLA::Matrix<3, 3> dcm_ned2ecef(const BLA::Matrix<3, 1> &lla);
 
+    // Works
     BLA::Matrix<3, 1> ecef2nedVec(const BLA::Matrix<3, 1> &ecef_meas, const BLA::Matrix<3, 1> &launch_ecef, const BLA::Matrix<3, 3> &R_ET);
 
+    // Works
     BLA::Matrix<3, 1> ned2ecefVec(const BLA::Matrix<3, 1> &ned_meas, const BLA::Matrix<3, 1> &launch_ecef, const BLA::Matrix<3, 3> &R_ET);
     
+    // TODO X and Z axes flipped. Re-run
     BLA::Matrix<3, 1> quat2RPY(const BLA::Matrix<4, 1> &p);
 
-    //Quaternion Conjugate
+    // Works
     BLA::Matrix<4, 1> quatConjugate(const BLA::Matrix<4, 1> &p);
 
+    // Works
     BLA::Matrix<3, 1> qRot(const BLA::Matrix<4, 1> &q, BLA::Matrix<3, 1> vec);
 
+    // Works
     BLA::Matrix<3, 1> qInvRot(const BLA::Matrix<4, 1> &q, BLA::Matrix<3, 1> vec);
 
+    // Works
     BLA::Matrix<3, 1> g_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef);
 
+    // Works
     BLA::Matrix<3, 1> m_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef);
 
+    // Works
     BLA::Matrix<3, 1> normal_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef);
 
     // One day...
@@ -56,13 +67,16 @@ namespace QuaternionUtils {
 
     BLA::Matrix<3, 3> vecs2mat(const BLA::Matrix<3, 1> v1, const BLA::Matrix<3, 1> v2, const BLA::Matrix<3, 1> v3);
 
+    // TODO: Not working. Test vecs2mat first and make sure that isn't the issue
     BLA::Matrix<4, 1> triad_EB(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i);
 
     // One day...
     // BLA::Matrix<4, 1> esoq2_EB(const BLA::Matrix<3, 4> v_b, const BLA::Matrix<3, 4> v_i);
 
+    // TODO: Fixed I think. Re-run
     BLA::Matrix<3, 1> lla2ecef(BLA::Matrix<3,1> lla);
 
+    // TODO: Fixed I think. Re-run
     BLA::Matrix<3, 1> ecef2lla(BLA::Matrix<3, 1> ecef);
 
     BLA::Matrix<4, 1> normalizeQuaternion(BLA::Matrix<4, 1> quat);
