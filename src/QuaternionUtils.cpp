@@ -266,6 +266,7 @@ BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
     BLA::Matrix<3, 1> s_b = BLA::CrossProduct(q_b, r_b);
 
     BLA::Matrix<3, 3> M_b = vecs2mat(q_b, r_b, s_b);
+    BLA::Matrix<3, 3> M_b_t = ~M_b;
 
     BLA::Matrix<3, 3> R_EB = M_i * M_b_t;
 
