@@ -134,15 +134,15 @@ BLA::Matrix<4, 1> QuaternionUtils::dcm2quat(const BLA::Matrix<3, 3> &dcm) {
 BLA::Matrix<4, 1> QuaternionUtils::quatMultiply(const BLA::Matrix<4, 1> &p, const BLA::Matrix<4, 1> &q) {
     BLA::Matrix<4, 1> quat;
 
-    // quat(0, 0) = p(0, 0) * q(0, 0) - p(1, 0) * q(1, 0) - p(2, 0) * q(2, 0) - p(3, 0) * q(3, 0);
-    // quat(1, 0) = p(0, 0) * q(1, 0) + p(1, 0) * q(0, 0) + p(2, 0) * q(3, 0) - p(3, 0) * q(2, 0);
-    // quat(2, 0) = p(0, 0) * q(2, 0)  - p(1, 0) * q(3, 0) + p(2, 0) * q(1, 0) + p(3, 0) * q(1, 0);
-    // quat(3, 0) = p(0, 0) * q(3, 0) + p(1, 0) * q(2, 0) - p(2, 0) * q(1, 0) + p(3, 0) * q(3, 0);
-
     quat(0, 0) = p(0, 0) * q(0, 0) - p(1, 0) * q(1, 0) - p(2, 0) * q(2, 0) - p(3, 0) * q(3, 0);
-    quat(1, 0) = p(0, 0) * q(1, 0) + p(1, 0) * q(0, 0) - p(2, 0) * q(3, 0) + p(3, 0) * q(2, 0);
-    quat(2, 0) = p(0, 0) * q(2, 0) + p(1, 0) * q(3, 0) + p(2, 0) * q(0, 0) - p(3, 0) * q(1, 0);
-    quat(3, 0) = p(0, 0) * q(3, 0) - p(1, 0) * q(2, 0) + p(2, 0) * q(1, 0) + p(3, 0) * q(0, 0);
+    quat(1, 0) = p(0, 0) * q(1, 0) + p(1, 0) * q(0, 0) + p(2, 0) * q(3, 0) - p(3, 0) * q(2, 0);
+    quat(2, 0) = p(0, 0) * q(2, 0)  - p(1, 0) * q(3, 0) + p(2, 0) * q(1, 0) + p(3, 0) * q(1, 0);
+    quat(3, 0) = p(0, 0) * q(3, 0) + p(1, 0) * q(2, 0) - p(2, 0) * q(1, 0) + p(3, 0) * q(3, 0);
+
+    // quat(0, 0) = p(0, 0) * q(0, 0) - p(1, 0) * q(1, 0) - p(2, 0) * q(2, 0) - p(3, 0) * q(3, 0);
+    // quat(1, 0) = p(0, 0) * q(1, 0) + p(1, 0) * q(0, 0) - p(2, 0) * q(3, 0) + p(3, 0) * q(2, 0);
+    // quat(2, 0) = p(0, 0) * q(2, 0) + p(1, 0) * q(3, 0) + p(2, 0) * q(0, 0) - p(3, 0) * q(1, 0);
+    // quat(3, 0) = p(0, 0) * q(3, 0) - p(1, 0) * q(2, 0) + p(2, 0) * q(1, 0) + p(3, 0) * q(0, 0);
 
     return quat;
 
@@ -252,33 +252,12 @@ BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
     BLA::Matrix<3, 1> v1_i_norm = v1_i / BLA::Norm(v1_i);
     BLA::Matrix<3, 1> v2_i_norm = v2_i / BLA::Norm(v2_i);
 
-    Serial.println("a_i:");
-    printMatHighDef(v1_i_norm);
-
-    Serial.println("m_i");
-    printMatHighDef(v2_i_norm);
-
-    BLA::Matrix<3, 1> inertial_cross = BLA::CrossProduct(v1_i_norm, v2_i_norm);
-    Serial.println("Inertial cross:");
-    printMatHighDef(inertial_cross);
-
-    Serial.println("Inertial cross norm:");
-    float norm = BLA::Norm(inertial_cross);
-    Serial.println(norm);
-
-    BLA::Matrix<3, 1> tmp_r_i = inertial_cross / BLA::Norm(inertial_cross);
-    Serial.println("Tmp r_i:");
-    printMatHighDef(tmp_r_i);
-
     // Inertial
     BLA::Matrix<3, 1> q_i = v1_i_norm;
     BLA::Matrix<3, 1> r_i = BLA::CrossProduct(v1_i_norm, v2_i_norm) / BLA::Norm(BLA::CrossProduct(v1_i_norm, v2_i_norm));
     BLA::Matrix<3, 1> s_i = BLA::CrossProduct(q_i, r_i);
 
     BLA::Matrix<3, 3> M_i = vecs2mat(q_i, r_i, s_i);
-
-    Serial.println("M_i:");
-    printMatHighDef(M_i);
 
 
     // Body
@@ -287,13 +266,6 @@ BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
     BLA::Matrix<3, 1> s_b = BLA::CrossProduct(q_b, r_b);
 
     BLA::Matrix<3, 3> M_b = vecs2mat(q_b, r_b, s_b);
-
-    Serial.println("M_b:");
-    printMatHighDef(M_b);
-
-    Serial.println("M_b^T:");
-    BLA::Matrix<3, 3> M_b_t = ~M_b;
-    printMatHighDef(M_b_t);
 
     BLA::Matrix<3, 3> R_EB = M_i * M_b_t;
 
