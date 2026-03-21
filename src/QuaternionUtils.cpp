@@ -252,6 +252,12 @@ BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
     BLA::Matrix<3, 1> v1_i_norm = v1_i / BLA::Norm(v1_i);
     BLA::Matrix<3, 1> v2_i_norm = v2_b / BLA::Norm(v2_i);
 
+    Serial.println("a_i:");
+    printMatHighDef(v1_i_norm);
+
+    Serial.println("m_i");
+    printMatHighDef(v2_i_norm);
+
     BLA::Matrix<3, 1> inertial_cross = BLA::CrossProduct(v1_i_norm, v2_i_norm);
     Serial.println("Inertial cross:");
     printMatHighDef(inertial_cross);

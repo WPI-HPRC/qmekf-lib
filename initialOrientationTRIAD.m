@@ -6,6 +6,11 @@ function R_EB = initialOrientationTRIAD(a_b, m_b, a_i, m_i)
     a_i = a_i / norm(a_i);
     m_i = m_i / norm(m_i);
 
+    disp("a_i")
+    a_i
+
+    disp("m_i")
+    m_i
 
 
     disp("Inertial cross")
