@@ -68,8 +68,13 @@ BLA::Matrix<4, 1> SplitStateEstimator::get_quat_ecef() {
 }
 
 BLA::Matrix<4, 1> SplitStateEstimator::get_quat_ned() {
-    // Lowkey could be more efficient, but shouldn't be called much
-    return dcm2quat(get_dcmned2ecef() * quat2DCM(extractSub(att_x, SplitMEKFInds::quat)));
+    // Lowkey could be more efficient, but shouldn't be called much. Actually it will but idc rn
+    return dcm2quat(~get_dcmned2ecef() * quat2DCM(extractSub(att_x, SplitMEKFInds::quat)));
+}
+
+BLA::Matrix<3, 1> SplitStateEstimator::get_rpy_ned() {
+    // Too lazy to make more efficient. Sue me. Prob should have kept functions in rotm
+    return quat2RPY(dcm2quat(~get_dcmned2ecef() * quat2DCM(extractSub(att_x, SplitMEKFInds::quat))));
 }
 
 BLA::Matrix<3, 1> SplitStateEstimator::get_vel_ecef() {
@@ -78,7 +83,11 @@ BLA::Matrix<3, 1> SplitStateEstimator::get_vel_ecef() {
 }
 
 BLA::Matrix<3, 1> SplitStateEstimator::get_vel_ned() {
-    return get_dcmned2ecef() * get_vel_ecef();
+    return ~get_dcmned2ecef() * get_vel_ecef();
+}
+
+BLA::Matrix<3, 1> SplitStateEstimator::get_vel_body() {
+    return quat2DCMInv(extractSub(att_x, SplitMEKFInds::quat)) * get_vel_ecef();
 }
 
 BLA::Matrix<3, 1> SplitStateEstimator::get_pos_ecef() {
@@ -86,7 +95,7 @@ BLA::Matrix<3, 1> SplitStateEstimator::get_pos_ecef() {
 }
 
 BLA::Matrix<3, 1> SplitStateEstimator::get_pos_ned() {
-    return get_dcmned2ecef() * (get_pos_ecef() - launch_ecef);
+    return ~get_dcmned2ecef() * (get_pos_ecef() - launch_ecef);
 }
 
 BLA::Matrix<3, 1> SplitStateEstimator::get_gyro_prev() {

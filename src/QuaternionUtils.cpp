@@ -178,7 +178,7 @@ BLA::Matrix<3, 1> QuaternionUtils::quat2RPY(const BLA::Matrix<4, 1> &p) {
     // roll (x-axis rotation)
     double sinr_cosp = 2 * (p(0) * p(1) + p(2) * p(3));
     double cosr_cosp = 1 - 2 * (p(1) * p(1) + p(2) * p(2));
-    RPY(2) = std::atan2(sinr_cosp, cosr_cosp);
+    RPY(0) = std::atan2(sinr_cosp, cosr_cosp);
 
     // pitch (y-axis rotation)
     double sinp = std::sqrt(1 + 2 * (p(0) * p(2) - p(1) * p(3)));
@@ -188,7 +188,7 @@ BLA::Matrix<3, 1> QuaternionUtils::quat2RPY(const BLA::Matrix<4, 1> &p) {
     // yaw (z-axis rotation)
     double siny_cosp = 2 * (p(0) * p(3) + p(1) * p(2));
     double cosy_cosp = 1 - 2 * (p(2) * p(2) + p(3) * p(3));
-    RPY(0) = std::atan2(siny_cosp, cosy_cosp);
+    RPY(2) = std::atan2(siny_cosp, cosy_cosp);
 
     return RPY;
 }
@@ -252,6 +252,17 @@ BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
     BLA::Matrix<3, 1> v1_i_norm = v1_i / BLA::Norm(v1_i);
     BLA::Matrix<3, 1> v2_i_norm = v2_b / BLA::Norm(v2_i);
 
+    BLA::Matrix<3, 1> inertial_cross = BLA::CrossProduct(v1_i_norm, v2_i_norm);
+    Serial.println("Inertial cross:");
+    printMatHighDef(inertial_cross);
+
+    Serial.println("Inertial cross norm:");
+    printMatHighDef(BLA::Norm(inertial_cross));
+
+    BLA::Matrix<3, 1> tmp_r_i = inertial_cross / BLA::Norm(inertial_cross);
+    Serial.println("Tmp r_i:");
+    printMatHighDef(tmp_r_i);
+
     // Inertial
     BLA::Matrix<3, 1> q_i = v1_i_norm;
     BLA::Matrix<3, 1> r_i = BLA::CrossProduct(v1_i_norm, v2_i_norm) / BLA::Norm(BLA::CrossProduct(v1_i_norm, v2_i_norm));
@@ -298,7 +309,7 @@ BLA::Matrix<3,1> QuaternionUtils::lla2ecef(BLA::Matrix<3,1> lla) {
     return ecef;
 }
 
-
+// Chat baby lessssgoooooo
 BLA::Matrix<3, 1> QuaternionUtils::ecef2lla(BLA::Matrix<3, 1> ecef) {
     const double a = 6378137.0;
     const double e2 = 6.6943799901377997e-3;

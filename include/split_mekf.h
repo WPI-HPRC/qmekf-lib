@@ -71,8 +71,10 @@ class SplitStateEstimator {
 
     BLA::Matrix<4, 1> get_quat_ecef();
     BLA::Matrix<4, 1> get_quat_ned();
+    BLA::Matrix<3, 1> get_rpy_ned();
     BLA::Matrix<3,1> get_vel_ecef();
     BLA::Matrix<3,1> get_vel_ned();
+    BLA::Matrix<3,1> get_vel_body();
     BLA::Matrix<3,1> get_pos_ecef();
     BLA::Matrix<3,1> get_pos_ned();
 
