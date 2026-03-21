@@ -257,7 +257,8 @@ BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
     printMatHighDef(inertial_cross);
 
     Serial.println("Inertial cross norm:");
-    printMatHighDef(BLA::Norm(inertial_cross));
+    float norm = BLA::Norm(inertial_cross);
+    Serial.println(norm);
 
     BLA::Matrix<3, 1> tmp_r_i = inertial_cross / BLA::Norm(inertial_cross);
     Serial.println("Tmp r_i:");
