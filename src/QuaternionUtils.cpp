@@ -250,7 +250,7 @@ BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
     BLA::Matrix<3, 1> v1_b_norm = v1_b / BLA::Norm(v1_b);
     BLA::Matrix<3, 1> v2_b_norm = v2_b / BLA::Norm(v2_b);
     BLA::Matrix<3, 1> v1_i_norm = v1_i / BLA::Norm(v1_i);
-    BLA::Matrix<3, 1> v2_i_norm = v2_b / BLA::Norm(v2_i);
+    BLA::Matrix<3, 1> v2_i_norm = v2_i / BLA::Norm(v2_i);
 
     Serial.println("a_i:");
     printMatHighDef(v1_i_norm);
