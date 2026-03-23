@@ -162,6 +162,8 @@ BLA::Matrix<3, 1> SplitStateEstimator::reorient_asm(BLA::Matrix<3, 1> value) {
 
 BLA::Matrix<3, 1> SplitStateEstimator::reorient_lis(BLA::Matrix<3, 1> value) {
     // Note: For the LIS
+    // y multiply by -1
+    value(1) = -1.0f * value(1);
     BLA::Matrix<3, 3> reorient_matrix = {0, 1, 0,
                                     -1.0f, 0, 0,
                                     0, 0, 1};
