@@ -85,13 +85,16 @@ class SplitStateEstimator {
     float get_curr_temp();
     void set_curr_temp(float curr_temp);
     BLA::Matrix<3, 3> get_dcmned2ecef();
-    void set_dcmned2ecef(BLA::Matrix<3, 3> new_dcm_ned2ecef);
+    void set_dcmned2ecef(BLA::Matrix<3, 3> new_dcmned2ecef);
     float getGs();
 
     float getLastAttProp();
     float getLastAttUpdate();
     float getLastPVProp();
     float getLastPVUpdate();
+
+    BLA::Matrix<3, 1> reorient_asm(BLA::Matrix<3, 1> value);
+    BLA::Matrix<3, 1> reorient_lis(BLA::Matrix<3, 1> value);
 
     void computeInitialOrientation(BLA::Matrix<3, 1> accel, BLA::Matrix<3, 1> mag);
 

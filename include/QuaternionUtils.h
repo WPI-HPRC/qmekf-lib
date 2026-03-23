@@ -26,7 +26,7 @@ namespace QuaternionUtils {
     // Works
     BLA::Matrix<4, 1> dcm2quat(const BLA::Matrix<3, 3> &dcm);
 
-    // TODO: A little off. Re-run
+    // TODO: Works, but is a little off
     BLA::Matrix<4, 1> quatMultiply(const BLA::Matrix<4, 1> &p, const BLA::Matrix<4, 1> &q);
 
     // Works

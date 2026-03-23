@@ -29,6 +29,7 @@ void SplitStateEstimator::init(float curr_time, BLA::Matrix<3, 1> accel, BLA::Ma
         lastUpdateTimes(i) = curr_time;
     }
     
+    set_dcmned2ecef(launch_dcmned2ecef);
 
     gyro_prev.Fill(0);
     accel_prev.Fill(0);
@@ -126,8 +127,8 @@ BLA::Matrix<3, 3> SplitStateEstimator::get_dcmned2ecef() {
     return dcmned2ecef;
 }
 
-void SplitStateEstimator::set_dcmned2ecef(BLA::Matrix<3, 3> new_dcm_ned2ecef) {
-    dcmned2ecef = new_dcm_ned2ecef;
+void SplitStateEstimator::set_dcmned2ecef(BLA::Matrix<3, 3> new_dcmned2ecef) {
+    dcmned2ecef = new_dcmned2ecef;
 }
 
 float SplitStateEstimator::getGs() {
@@ -150,10 +151,31 @@ float SplitStateEstimator::getLastPVUpdate() {
     return lastUpdateTimes(1);
 }
 
+BLA::Matrix<3, 1> SplitStateEstimator::reorient_asm(BLA::Matrix<3, 1> value) {
+    // Note: For the ASM
+    BLA::Matrix<3, 3> reorient_matrix = {-1.0f, 0, 0,
+                                    0, -1.0f, 0,
+                                    0, 0, 1};
+
+    return  reorient_matrix * value;
+}
+
+BLA::Matrix<3, 1> SplitStateEstimator::reorient_lis(BLA::Matrix<3, 1> value) {
+    // Note: For the LIS
+    BLA::Matrix<3, 3> reorient_matrix = {0, 1, 0,
+                                    -1.0f, 0, 0,
+                                    0, 0, 1};
+
+    return  reorient_matrix * value;
+}
+
+
 // TODO
-void computeInitialOrientation() {
-    // TRIAD_EB()
-    // TODO triad and set to the att_x to that
+void computeInitialOrientation(BLA::Matrix<3, 1> accel, BLA::Matrix<3, 1> mag) {
+    BLA::Matrix<3, 3> orientation_mat = triad_EB(accel, mag, normal_i_ecef(get_dcmned2ecef()), m_i_ecef(get_dcmned2ecef()));
+
+    setSub(att_x, SplitMEKFInds::quat, dcm2quat(orientation_mat));
+
 }
 
 
