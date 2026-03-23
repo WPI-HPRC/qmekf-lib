@@ -171,7 +171,7 @@ BLA::Matrix<3, 1> SplitStateEstimator::reorient_lis(BLA::Matrix<3, 1> value) {
 
 
 // TODO
-void computeInitialOrientation(BLA::Matrix<3, 1> accel, BLA::Matrix<3, 1> mag) {
+void SplitStateEstimator::computeInitialOrientation(BLA::Matrix<3, 1> accel, BLA::Matrix<3, 1> mag) {
     BLA::Matrix<3, 3> orientation_mat = triad_EB(accel, mag, normal_i_ecef(get_dcmned2ecef()), m_i_ecef(get_dcmned2ecef()));
 
     setSub(att_x, SplitMEKFInds::quat, dcm2quat(orientation_mat));
