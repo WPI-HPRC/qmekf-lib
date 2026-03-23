@@ -70,7 +70,7 @@ BLA::Matrix<4, 1> SplitStateEstimator::get_quat_ecef() {
 
 BLA::Matrix<4, 1> SplitStateEstimator::get_quat_ned() {
     // Lowkey could be more efficient, but shouldn't be called much. Actually it will but idc rn
-    return dcm2quat(~get_dcmned2ecef() * quat2DCM(extractSub(att_x, SplitMEKFInds::quat)));
+    return dcm2quat(quat2DCM(extractSub(att_x, SplitMEKFInds::quat)) * ~get_dcmned2ecef());
 }
 
 BLA::Matrix<3, 1> SplitStateEstimator::get_rpy_ned() {
