@@ -33,7 +33,7 @@ void SplitStateEstimator::init(float curr_time, BLA::Matrix<3, 1> accel, BLA::Ma
     
     set_dcmned2ecef(launch_dcmned2ecef);
 
-    pv_x.SubMatrix<3, 1>(2, 5) = launch_ecef;
+    pv_x.Submatrix<3, 1>(2, 5) = launch_ecef;
 
 
     gyro_prev.Fill(0);
@@ -42,7 +42,7 @@ void SplitStateEstimator::init(float curr_time, BLA::Matrix<3, 1> accel, BLA::Ma
     mag_prev.Fill(0);
     baro_prev.Fill(0);
 
-    computeInitialOrientation(accel, mag);
+    computeInitialOrientation(accel, mag, curr_time);
 }
 
 BLA::Matrix<13, 1> SplitStateEstimator::getAttState() {
