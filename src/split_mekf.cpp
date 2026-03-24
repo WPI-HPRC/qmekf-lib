@@ -22,14 +22,19 @@ using namespace vimu_const;
 
 void SplitStateEstimator::init(float curr_time, BLA::Matrix<3, 1> accel, BLA::Matrix<3, 1> mag) {
     
-    for (int i = 0; i < 6; i++) {
+    // Prop
+    for (int i = 0; i < 2; i++) {
         lastCalcTimes(i) = curr_time;
     }
-    for (int i = 0; i < 2; i++) {
+    // Updates
+    for (int i = 0; i < 6; i++) {
         lastUpdateTimes(i) = curr_time;
     }
     
     set_dcmned2ecef(launch_dcmned2ecef);
+
+    pv_x.SubMatrix<3, 1>(2, 5) = launch_ecef;
+
 
     gyro_prev.Fill(0);
     accel_prev.Fill(0);
@@ -135,6 +140,7 @@ float SplitStateEstimator::getGs() {
     return BLA::Norm(get_accel_prev());
 }
 
+// TODO Fix this shit
 float SplitStateEstimator::getLastAttProp() {
     return lastCalcTimes(0);
 }
@@ -172,10 +178,14 @@ BLA::Matrix<3, 1> SplitStateEstimator::reorient_lis(BLA::Matrix<3, 1> value) {
 
 
 // TODO
-void SplitStateEstimator::computeInitialOrientation(BLA::Matrix<3, 1> accel, BLA::Matrix<3, 1> mag) {
+void SplitStateEstimator::computeInitialOrientation(BLA::Matrix<3, 1> accel, BLA::Matrix<3, 1> mag, float curr_time) {
     BLA::Matrix<3, 3> orientation_mat = triad_EB(accel, mag, normal_i_ecef(get_dcmned2ecef()), m_i_ecef(get_dcmned2ecef()));
 
     setSub(att_x, SplitMEKFInds::quat, dcm2quat(orientation_mat));
+
+    lastCalcTimes(0, 0) = curr_time;
+    lastCalcTimes(2, 0) = curr_time;
+    lastCalcTimes(3, 0) = curr_time;
 
 }
 

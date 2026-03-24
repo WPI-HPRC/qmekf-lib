@@ -1,5 +1,13 @@
 Notes:
 
+lastCalcTimes:
+*gyro prop
+*accel prop
+*accel
+*mag
+*GPS
+*baro
+
 
 I change magData variable to imuData because it contains all the IMU data, not just magData
 Also please change the accel to return the m/s^2, not g's
