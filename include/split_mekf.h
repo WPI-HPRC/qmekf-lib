@@ -96,7 +96,7 @@ class SplitStateEstimator {
     BLA::Matrix<3, 1> reorient_asm(BLA::Matrix<3, 1> value);
     BLA::Matrix<3, 1> reorient_lis(BLA::Matrix<3, 1> value);
 
-    void computeInitialOrientation(BLA::Matrix<3, 1> accel, BLA::Matrix<3, 1> mag);
+    void computeInitialOrientation(BLA::Matrix<3, 1> accel, BLA::Matrix<3, 1> mag, float curr_time);
 
     // Priori Functions
     BLA::Matrix<13, 1> fastGyroProp(BLA::Matrix<3,1> gyro, float curr_time);
