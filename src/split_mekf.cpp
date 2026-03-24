@@ -70,7 +70,7 @@ BLA::Matrix<4, 1> SplitStateEstimator::get_quat_ecef() {
 
 BLA::Matrix<4, 1> SplitStateEstimator::get_quat_ned() {
     // Lowkey could be more efficient, but shouldn't be called much. Actually it will but idc rn
-    return dcm2quat(quat2DCM(extractSub(att_x, SplitMEKFInds::quat)) * ~get_dcmned2ecef());
+    return dcm2quat(~get_dcmned2ecef() * quat2DCM(extractSub(att_x, SplitMEKFInds::quat)));
 }
 
 BLA::Matrix<3, 1> SplitStateEstimator::get_rpy_ned() {
@@ -163,9 +163,8 @@ BLA::Matrix<3, 1> SplitStateEstimator::reorient_asm(BLA::Matrix<3, 1> value) {
 BLA::Matrix<3, 1> SplitStateEstimator::reorient_lis(BLA::Matrix<3, 1> value) {
     // Note: For the LIS
     // y multiply by -1
-    value(1) = -1.0f * value(1);
     BLA::Matrix<3, 3> reorient_matrix = {0, 1, 0,
-                                    -1.0f, 0, 0,
+                                    1, 0, 0,
                                     0, 0, 1};
 
     return  reorient_matrix * value;
