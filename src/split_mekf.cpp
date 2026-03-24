@@ -183,8 +183,6 @@ void SplitStateEstimator::computeInitialOrientation(BLA::Matrix<3, 1> accel, BLA
 
 
 BLA::Matrix<13, 1> SplitStateEstimator::fastGyroProp(BLA::Matrix<3,1> gyro, float curr_time) {
-    gyro = vimu_const::asm_to_board * gyro;
-
     BLA::Matrix<4, 1> last_relevant_times = {0, 2, 3, 4}; // Gyro prop, accel+mag+gps update
     float dt = curr_time - vecMax(extractSub(lastCalcTimes, last_relevant_times));
     
