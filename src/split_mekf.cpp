@@ -288,7 +288,11 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
 
     phi = I_12 + (F * att_dt) + (0.5f * F * F * float(pow(att_dt, 2)));
 
-    BLA::Matrix<19, 19> phi_t = ~phi;
+    BLA::Matrix<12, 12> phi_t = ~phi;
+
+    P = phi * P * phi_t + Q_d;
+
+    return P;
 
 
 
@@ -355,15 +359,12 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     // Q_d.Submatrix<3, 3>(15, 15) = mag_bias_var_diag * dt;
     // Q_d.Submatrix<1, 1>(18, 18) = baro_bias_var_diag * dt;
 
-    P = phi * P * phi_t + Q_d;
 
     // DBG.print(P(0, 0), 7);
     // DBG.print(", ");
     // DBG.print(P(1, 1), 7);
     // DBG.print(", ");
     // DBG.println(P(2, 2), 7);
-
-    return P;
 }
 
 
