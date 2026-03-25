@@ -266,11 +266,11 @@ BLA::Matrix<10, 1> SplitStateEstimator::fastAccelProp(BLA::Matrix<3, 1> accel, f
 BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     BLA::Matrix<4, 1> att_update_relevant_times = {2, 3};
 
-    float att_dt = curr_time - vecMax(extractSub(lastCalcTimes, att_last_relevant_times));
+    float att_dt = curr_time - vecMax(extractSub(lastCalcTimes, att_update_relevant_times));
 
     BLA::Matrix<3,3> gyroSkew = skewSymmetric(gyro_prev);
 
-    BLA::Matrix<3,3> q_conj_dcm = quat2DCMInv(extractSub(x, SplitMEKFInds::quat));
+    BLA::Matrix<3,3> q_conj_dcm = quat2DCMInv(extractSub(att_x, SplitMEKFInds::quat));
 
     BLA::Matrix<12, 12> F;
     F.Fill(0);
@@ -280,7 +280,7 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     F.Submatrix<3, 3>(0, SplitMEKFInds::q_w) = -1.0f * gyroSkew;
     F.Submatrix<3, 3>(4, 4) = -1.0f * I_3;
 
-    Serial.println(printMatHighDef(F));
+    printMatHighDef(F);
 
     
     BLA::Matrix<12, 12> phi;
