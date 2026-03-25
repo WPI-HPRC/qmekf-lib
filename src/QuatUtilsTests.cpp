@@ -151,8 +151,10 @@ void loop() {
         // TODO toDiag
 
         BLA::Matrix<2, 1> extracts = {1, 3};
-        printMatHighDef(extractSub(random_quat, extracts));
-        printMatHighDef(vecMax(extracts));
+        BLA::Matrix<2, 1> subs = extractSub(random_quat, extracts);
+        float max = vecMax(extracts);
+        printMatHighDef(subs);
+        Serial.println(max);
         // TODO vecMax
         // TODO vecMaxInd
         // TODO setSub

@@ -146,7 +146,7 @@ float SplitStateEstimator::getLastAttProp() {
 }
 
 float SplitStateEstimator::getLastAttUpdate() {
-    last_relevant_times = {2, 3};
+    BLA::Matrix<3, 1> last_relevant_times = {2, 3};
     return vecMax(extractSub(lastCalcTimes, last_relevant_times));
 }
 
@@ -155,7 +155,7 @@ float SplitStateEstimator::getLastPVProp() {
 }
 
 float SplitStateEstimator::getLastPVUpdate() {
-    last_relevant_times = {4, 5};
+    BLA::Matrix<2, 1> last_relevant_times = {4, 5};
     return vecMax(extractSub(lastCalcTimes, last_relevant_times));
 }
 
