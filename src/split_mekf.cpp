@@ -278,7 +278,7 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     // TODO: Fix indices
     //Row 1 - 3
     F.Submatrix<3, 3>(0, SplitMEKFInds::q_w) = -1.0f * gyroSkew;
-    F.Submatrix<3, 3>(3, 3) = -1.0f * I_3;
+    F.Submatrix<3, 3>(SplitMEKFInds::gb_x - 1, SplitMEKFInds::gb_x - 1) = -1.0f * I_3;
 
     printMatHighDef(F);
 
@@ -370,37 +370,36 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
 
 
 
-// BLA::Matrix<20, 1> SplitStateEstimator::runAccelUpdate(BLA::Matrix<3, 1> a_b, float curr_time) {
-//     a_b = vimu_const::asm_to_board * a_b;
+BLA::Matrix<20, 1> SplitStateEstimator::runAccelUpdate(BLA::Matrix<3, 1> a_b, float curr_time) {
 
-//     BLA::Matrix<3, 1> unbiased_accel = a_b - extractSub(x, SplitMEKFInds::accelBias);
-//     float u_a_n = BLA::Norm(unbiased_accel);
-//     unbiased_accel = (unbiased_accel / u_a_n);
-//     BLA::Matrix<4,1> q = extractSub(x, SplitMEKFInds::quat);
+    BLA::Matrix<3, 1> unbiased_accel = a_b - extractSub(x, SplitMEKFInds::accelBias);
+    // float u_a_n = BLA::Norm(unbiased_accel);
+    // unbiased_accel = (unbiased_accel / u_a_n);
+    BLA::Matrix<4,1> q = extractSub(x, SplitMEKFInds::quat);
 
-//     BLA::Matrix<3, 1> h_accel = quat2DCM(q) * normal_i_ecef(launch_dcmned2ecef);
-//     float h_a_n = BLA::Norm(h_accel);
-//     h_accel = h_accel / h_a_n;
+    BLA::Matrix<3, 1> h_accel = quat2DCMInv(q) * normal_i_ecef(launch_dcmned2ecef);
+    // float h_a_n = BLA::Norm(h_accel);
+    // h_accel = h_accel / h_a_n;
 
 
-//     BLA::Matrix<3, 19> H_accel;
-//     H_accel.Fill(0);
-//     H_accel.Submatrix<3, 3>(0, 0) = -1.0f * skewSymmetric(h_accel);
-//     H_accel.Submatrix<3, 3>(0, SplitMEKFInds::ab_x - 1) = I_3;
+    BLA::Matrix<3, 12> H_accel;
+    H_accel.Fill(0);
+    H_accel.Submatrix<3, 3>(0, 0) = -1.0f * skewSymmetric(h_accel);
+    H_accel.Submatrix<3, 3>(SplitMEKFInds::ab_x - 1, SplitMEKFInds::ab_x - 1) = I_3;
 
-//     BLA::Matrix<3, 3> R;
-//     R.Fill(0);
-//     //tune ts
-//     float sigma_accel = 0.1f; 
-//     float sigma_n = sigma_accel / u_a_n;
-//     //why wont diag wrk ugh
-//     R(0, 0) = sigma_n * sigma_n;
-//     R(1, 1) = sigma_n * sigma_n;
-//     R(2, 2) = sigma_n * sigma_n;
+    BLA::Matrix<3, 3> R;
+    R.Fill(0);
+    //tune ts
+    float sigma_accel = 0.01f;
+    float sigma_n = sigma_accel;
+    //why wont diag wrk ugh
+    R(0, 0) = sigma_n * sigma_n;
+    R(1, 1) = sigma_n * sigma_n;
+    R(2, 2) = sigma_n * sigma_n;
 
-//     lastCalcTimes(2) = curr_time;
-//     return ekfCalcErrorInject(unbiased_accel, H_accel, h_accel, R);
-// }
+    lastCalcTimes(2) = curr_time;
+    return ekfCalcErrorInject(unbiased_accel, H_accel, h_accel, R);
+}
 
 // BLA::Matrix<20, 1> SplitStateEstimator::runMagUpdate(BLA::Matrix<3, 1> m_b, float curr_time) {
 //     m_b = vimu_const::mag_to_board * m_b;
