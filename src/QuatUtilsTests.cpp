@@ -149,6 +149,10 @@ void loop() {
 
 
         // TODO toDiag
+
+        BLA::Matrix<2, 1> extracts = {1, 3};
+        printMatHighDef(extractSub(random_quat, extracts));
+        printMatHighDef(vecMax(extracts));
         // TODO vecMax
         // TODO vecMaxInd
         // TODO setSub

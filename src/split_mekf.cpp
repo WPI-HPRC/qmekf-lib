@@ -146,7 +146,8 @@ float SplitStateEstimator::getLastAttProp() {
 }
 
 float SplitStateEstimator::getLastAttUpdate() {
-    return lastUpdateTimes(0);
+    last_relevant_times = {2, 3};
+    return vecMax(extractSub(lastCalcTimes, last_relevant_times));
 }
 
 float SplitStateEstimator::getLastPVProp() {
@@ -154,7 +155,8 @@ float SplitStateEstimator::getLastPVProp() {
 }
 
 float SplitStateEstimator::getLastPVUpdate() {
-    return lastUpdateTimes(1);
+    last_relevant_times = {4, 5};
+    return vecMax(extractSub(lastCalcTimes, last_relevant_times));
 }
 
 BLA::Matrix<3, 1> SplitStateEstimator::reorient_asm(BLA::Matrix<3, 1> value) {
@@ -223,8 +225,7 @@ BLA::Matrix<13, 1> SplitStateEstimator::fastGyroProp(BLA::Matrix<3,1> gyro, floa
 }
 
 BLA::Matrix<10, 1> SplitStateEstimator::fastAccelProp(BLA::Matrix<3, 1> accel, float curr_time) {
-    accel = vimu_const::asm_to_board * accel;
-    BLA::Matrix<4, 1> last_relevant_times = {0, 4, 5}; // accel prop, accel+mag+gps update
+    BLA::Matrix<4, 1> last_relevant_times = {1, 4, 5}; // accel prop, accel+gps update
     float dt = curr_time - vecMax(extractSub(lastCalcTimes, last_relevant_times));
 
     BLA::Matrix<3, 1> f_b = accel - extractSub(pv_x, SplitMEKFInds::accelBias);
