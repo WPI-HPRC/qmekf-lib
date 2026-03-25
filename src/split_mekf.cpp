@@ -278,7 +278,7 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     // TODO: Fix indices
     //Row 1 - 3
     F.Submatrix<3, 3>(0, SplitMEKFInds::q_w) = -1.0f * gyroSkew;
-    F.Submatrix<3, 3>(4, 4) = -1.0f * I_3;
+    F.Submatrix<3, 3>(3, 3) = -1.0f * I_3;
 
     printMatHighDef(F);
 
