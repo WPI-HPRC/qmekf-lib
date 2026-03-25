@@ -263,121 +263,110 @@ BLA::Matrix<10, 1> SplitStateEstimator::fastAccelProp(BLA::Matrix<3, 1> accel, f
     return pv_x;
 }
 
-// BLA::Matrix<19, 19> SplitStateEstimator::ekfPredict(float curr_time) {
-//     // TODO finish this. too lazy
-//     /*
-//     BLA::Matrix<4, 1> att_last_relevant_times = {0, 1, 3, 4};
-//     BLA::Matrix<4, 1> pv_last_relevant_times = {1, 4, 5};
-//     float att_dt = curr_time - vecMax(extractSub(lastCalcTimes, att_last_relevant_times));
-//     float pv_dt = curr_time - vecMax(extractSub(lastCalcTimes, pv_last_relevant_times));
+BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
+    BLA::Matrix<4, 1> att_update_relevant_times = {2, 3};
 
-//     DBG.print("att_dt: "); DBG.println(att_dt, 6);
-//     DBG.print("pv_dt: "); DBG.println(pv_dt, 6);
-//     */
+    float att_dt = curr_time - vecMax(extractSub(lastCalcTimes, att_last_relevant_times));
 
-//     float dt = curr_time - lastPredictTime;
+    BLA::Matrix<3,3> gyroSkew = skewSymmetric(gyro_prev);
+
+    BLA::Matrix<3,3> q_conj_dcm = quat2DCMInv(extractSub(x, SplitMEKFInds::quat));
+
+    BLA::Matrix<12, 12> F;
+    F.Fill(0);
+
+    // TODO: Fix indices
+    //Row 1 - 3
+    F.Submatrix<3, 3>(0, SplitMEKFInds::q_w) = -1.0f * gyroSkew;
+    F.Submatrix<3, 3>(4, 4) = -1.0f * I_3;
+
+    Serial.println(printMatHighDef(F));
+
     
-//     lastPredictTime = curr_time;
+    BLA::Matrix<12, 12> phi;
+    phi.Fill(0);
+
+    phi = I_12 + (F * att_dt) + (0.5f * F * F * float(pow(att_dt, 2)));
+
+    BLA::Matrix<19, 19> phi_t = ~phi;
 
 
-//     BLA::Matrix<3,3> gyroSkew = skewSymmetric(gyro_prev);
-//     BLA::Matrix<3,3> accelSkew = skewSymmetric(accel_prev);
-
-//     BLA::Matrix<3, 3> q_conj_dcm = quat2DCM(quatConjugate(extractSub(x, SplitMEKFInds::quat)));
-
-//     BLA::Matrix<19, 19> F;
-//     F.Fill(0);
-
-//     //Row 1 - 3
-//     F.Submatrix<3, 3>(0, SplitMEKFInds::q_w) = -1.0f * gyroSkew; 
-//     F.Submatrix<3, 3>(0, SplitMEKFInds::gb_x - 1) = -1.0f * I_3;
-
-//     //Row 4 - 6
-//     F.Submatrix<3, 3>(SplitMEKFInds::v_x - 1, SplitMEKFInds::q_w) = -1.0f * q_conj_dcm * accelSkew;
-//     F.Submatrix<3, 3>(SplitMEKFInds::v_x - 1, SplitMEKFInds::ab_x - 1) = -1.0f * q_conj_dcm;
-
-//     //Row 7 - 9
-//     F.Submatrix<3, 3>(SplitMEKFInds::p_x - 1, SplitMEKFInds::v_x - 1) = I_3;
-    
-//     BLA::Matrix<19, 19> phi;
-//     phi.Fill(0);
-
-//     phi = I_19 + (F * dt) + (0.5f * F * F * float(pow(dt, 2))); // I was hoping to split up the dt. Not that deep tho
-
-//     BLA::Matrix<19, 19> phi_t = ~phi;
-
-//     // Process noise
-//     BLA::Matrix<19, 19> Q_d;
-//     Q_d.Fill(0);
 
 
-//     //Sorry random numbers theyre in the output.txt file from the allan variance tests
-//     BLA::Matrix<3, 3> gyro_var_diag;
-//     gyro_var_diag.Fill(0);
-//     gyro_var_diag(0, 0) = 0.00015761;
-//     gyro_var_diag(1, 1) = 0.00012345;
-//     gyro_var_diag(2, 2) = 0.00010394;
 
-//     BLA::Matrix<3, 3> gyro_bias_var_diag;
-//     gyro_bias_var_diag.Fill(0);
-//     gyro_bias_var_diag(0, 0) = 0.0f; // 0.1152665 / 1000.0f * (PI / 180.0f);
-//     gyro_bias_var_diag(1, 1) = 0.0f; // 0.1621635 / 1000.0f * (PI / 180.0f);
-//     gyro_bias_var_diag(2, 2) = 0.0f; // 0.09894897 / 1000.0f * (PI / 180.0f);
+    // // Process noise
+    // BLA::Matrix<19, 19> Q_d;
+    // Q_d.Fill(0);
 
-//     BLA::Matrix<3, 3> accel_var_diag;
-//     accel_var_diag.Fill(0);
-//     accel_var_diag(0, 0) = 0.0013;
-//     accel_var_diag(1, 1) = 0.0013;
-//     accel_var_diag(2, 2) = 0.0026;
 
-//     BLA::Matrix<3, 3> accel_bias_var_diag;
-//     accel_bias_var_diag.Fill(0);
-//     accel_bias_var_diag(0, 0) = 0.0f; //0.01474176 * 0.00980665f;
-//     accel_bias_var_diag(1, 1) = 0.0f; // 0.03503381 * 0.00980665f;
-//     accel_bias_var_diag(2, 2) = 0.0f; // 0.0043195624 * 0.00980665f;
+    // //Sorry random numbers theyre in the output.txt file from the allan variance tests
+    // BLA::Matrix<3, 3> gyro_var_diag;
+    // gyro_var_diag.Fill(0);
+    // gyro_var_diag(0, 0) = 0.00015761;
+    // gyro_var_diag(1, 1) = 0.00012345;
+    // gyro_var_diag(2, 2) = 0.00010394;
 
-//     BLA::Matrix<3, 3> mag_bias_var_diag;
-//     mag_bias_var_diag.Fill(0);
-//     mag_bias_var_diag(0, 0) = 0.008301463f;
-//     mag_bias_var_diag(1, 1) = 0.003226824f;
-//     mag_bias_var_diag(2, 2) = 0.01745155f;
+    // BLA::Matrix<3, 3> gyro_bias_var_diag;
+    // gyro_bias_var_diag.Fill(0);
+    // gyro_bias_var_diag(0, 0) = 0.0f; // 0.1152665 / 1000.0f * (PI / 180.0f);
+    // gyro_bias_var_diag(1, 1) = 0.0f; // 0.1621635 / 1000.0f * (PI / 180.0f);
+    // gyro_bias_var_diag(2, 2) = 0.0f; // 0.09894897 / 1000.0f * (PI / 180.0f);
 
-//     BLA::Matrix<1, 1> baro_bias_var_diag;
-//     baro_bias_var_diag.Fill(0);
-//     baro_bias_var_diag(0, 0) = 0.01243823f;
+    // BLA::Matrix<3, 3> accel_var_diag;
+    // accel_var_diag.Fill(0);
+    // accel_var_diag(0, 0) = 0.0013;
+    // accel_var_diag(1, 1) = 0.0013;
+    // accel_var_diag(2, 2) = 0.0026;
 
-//     Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, SplitMEKFInds::q_w) = (gyro_var_diag * dt) + (gyro_bias_var_diag * float((pow(dt, 3) / 3.0)));
-//     Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, 9) = -1.0f * gyro_bias_var_diag * float((pow(dt, 2) / 2));
+    // BLA::Matrix<3, 3> accel_bias_var_diag;
+    // accel_bias_var_diag.Fill(0);
+    // accel_bias_var_diag(0, 0) = 0.0f; //0.01474176 * 0.00980665f;
+    // accel_bias_var_diag(1, 1) = 0.0f; // 0.03503381 * 0.00980665f;
+    // accel_bias_var_diag(2, 2) = 0.0f; // 0.0043195624 * 0.00980665f;
 
-//     Q_d.Submatrix<3 ,3>(3, 3) = accel_var_diag * dt + accel_bias_var_diag * float((pow(dt, 3) / 3));
-//     Q_d.Submatrix<3, 3>(3, 6) = accel_bias_var_diag * float((pow(dt ,4) / 8.0)) + accel_var_diag * float((pow(dt, 2) / 2.0));
-//     Q_d.Submatrix<3, 3>(3, 10) = -1.0f * accel_bias_var_diag * float((pow(dt, 2) / 2.0));
+    // BLA::Matrix<3, 3> mag_bias_var_diag;
+    // mag_bias_var_diag.Fill(0);
+    // mag_bias_var_diag(0, 0) = 0.008301463f;
+    // mag_bias_var_diag(1, 1) = 0.003226824f;
+    // mag_bias_var_diag(2, 2) = 0.01745155f;
 
-//     Q_d.Submatrix<3, 3>(6, 3) = accel_var_diag * float((pow(dt, 2) / 2)) + accel_bias_var_diag * float((pow(dt, 4) / 8.0));
-//     Q_d.Submatrix<3, 3>(6, 6) = accel_var_diag * float((pow(dt, 3) / 3.0)) + accel_bias_var_diag * float((pow(dt, 5) / 20.0));
-//     Q_d.Submatrix<3, 3>(6, 10) = -1.0f * accel_bias_var_diag * float((pow(dt, 3) / 6.0));
+    // BLA::Matrix<1, 1> baro_bias_var_diag;
+    // baro_bias_var_diag.Fill(0);
+    // baro_bias_var_diag(0, 0) = 0.01243823f;
 
-//     Q_d.Submatrix<3, 3>(9, 0) = -1.0f * gyro_bias_var_diag * float((pow(dt, 2) / 2.0));
-//     Q_d.Submatrix<3, 3>(9, 9) = gyro_bias_var_diag * float((pow(dt, 2) / 2.0));
+    // Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, SplitMEKFInds::q_w) = (gyro_var_diag * dt) + (gyro_bias_var_diag * float((pow(dt, 3) / 3.0)));
+    // Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, 9) = -1.0f * gyro_bias_var_diag * float((pow(dt, 2) / 2));
 
-//     Q_d.Submatrix<3, 3>(12, 3) = -1.0f * accel_bias_var_diag * float((pow(dt, 2) / 2.0));
-//     Q_d.Submatrix<3, 3>(12, 6) = -1.0f * accel_bias_var_diag * float((pow(dt, 3) / 6.0));
-//     Q_d.Submatrix<3, 3>(12, 12) = accel_bias_var_diag * dt;
+    // Q_d.Submatrix<3 ,3>(3, 3) = accel_var_diag * dt + accel_bias_var_diag * float((pow(dt, 3) / 3));
+    // Q_d.Submatrix<3, 3>(3, 6) = accel_bias_var_diag * float((pow(dt ,4) / 8.0)) + accel_var_diag * float((pow(dt, 2) / 2.0));
+    // Q_d.Submatrix<3, 3>(3, 10) = -1.0f * accel_bias_var_diag * float((pow(dt, 2) / 2.0));
 
-//     Q_d.Submatrix<3, 3>(15, 15) = mag_bias_var_diag * dt;
-//     Q_d.Submatrix<1, 1>(18, 18) = baro_bias_var_diag * dt;
+    // Q_d.Submatrix<3, 3>(6, 3) = accel_var_diag * float((pow(dt, 2) / 2)) + accel_bias_var_diag * float((pow(dt, 4) / 8.0));
+    // Q_d.Submatrix<3, 3>(6, 6) = accel_var_diag * float((pow(dt, 3) / 3.0)) + accel_bias_var_diag * float((pow(dt, 5) / 20.0));
+    // Q_d.Submatrix<3, 3>(6, 10) = -1.0f * accel_bias_var_diag * float((pow(dt, 3) / 6.0));
 
-//     P = phi * P * phi_t + Q_d;
+    // Q_d.Submatrix<3, 3>(9, 0) = -1.0f * gyro_bias_var_diag * float((pow(dt, 2) / 2.0));
+    // Q_d.Submatrix<3, 3>(9, 9) = gyro_bias_var_diag * float((pow(dt, 2) / 2.0));
 
-//     DBG.print(P(0, 0), 7);
-//     DBG.print(", ");
-//     DBG.print(P(1, 1), 7);
-//     DBG.print(", ");
-//     DBG.println(P(2, 2), 7);
+    // Q_d.Submatrix<3, 3>(12, 3) = -1.0f * accel_bias_var_diag * float((pow(dt, 2) / 2.0));
+    // Q_d.Submatrix<3, 3>(12, 6) = -1.0f * accel_bias_var_diag * float((pow(dt, 3) / 6.0));
+    // Q_d.Submatrix<3, 3>(12, 12) = accel_bias_var_diag * dt;
 
-//     return P;
-    
-// }
+    // Q_d.Submatrix<3, 3>(15, 15) = mag_bias_var_diag * dt;
+    // Q_d.Submatrix<1, 1>(18, 18) = baro_bias_var_diag * dt;
+
+    P = phi * P * phi_t + Q_d;
+
+    // DBG.print(P(0, 0), 7);
+    // DBG.print(", ");
+    // DBG.print(P(1, 1), 7);
+    // DBG.print(", ");
+    // DBG.println(P(2, 2), 7);
+
+    return P;
+}
+
+
 
 // BLA::Matrix<20, 1> SplitStateEstimator::runAccelUpdate(BLA::Matrix<3, 1> a_b, float curr_time) {
 //     a_b = vimu_const::asm_to_board * a_b;
