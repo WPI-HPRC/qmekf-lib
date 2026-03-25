@@ -291,11 +291,9 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     BLA::Matrix<12, 12> phi_t = ~phi;
 
     // P = phi * P * phi_t + Q_d;
-    P = phi * P * phi_t;
+    att_P = phi * P * phi_t;
 
-    att_P = P;
-
-    return P;
+    return att_P;
 
 
 
