@@ -161,7 +161,7 @@ class SplitStateEstimator {
 	  BLA::Matrix<19, 19> I_19 = BLA::Eye<19, 19>();
     BLA::Matrix<10, 10> I_10 = BLA::Eye<10, 10>();
 	  BLA::Matrix<13, 13> I_13 = BLA::Eye<13, 13>();
-    BLA::Matrix<13, 13> I_12 = BLA::Eye<12, 12>();
+    BLA::Matrix<12, 12> I_12 = BLA::Eye<12, 12>();
     BLA::Matrix<3, 3> I_3 = BLA::Eye<3, 3>();
     
 
