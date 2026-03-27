@@ -382,7 +382,7 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
 
 
 
-BLA::Matrix<20, 1> SplitStateEstimator::runAccelUpdate(BLA::Matrix<3, 1> a_b, float curr_time) {
+BLA::Matrix<13, 1> SplitStateEstimator::runAccelUpdate(BLA::Matrix<3, 1> a_b, float curr_time) {
 
     BLA::Matrix<3, 1> unbiased_accel = a_b - extractSub(x, SplitMEKFInds::accelBias);
     // float u_a_n = BLA::Norm(unbiased_accel);
