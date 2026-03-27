@@ -293,10 +293,22 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     // P = phi * P * phi_t + Q_d;
     att_P = phi * att_P * phi_t;
 
-    return att_P;
+    BLA::Matrix<12, 12> Q_d;
+
+    Q_d.Fill(0);
+
+    BLA::Matrix<3, 1> gyro_var = {0.00015761, 0.00012345, 0.00010394};
+
+    BLA::Matrix<3, 3> gyro_var_diag = toDiag(gyro_var);
+
+    BLA::Matrix<3, 1> gyro_bias_var = {0, 0, 0};
+    BLA::Matrix<3, 3> gyro_bias_var_diag = toDiag(gyro_bias_var);
 
 
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, SplitMEKFInds::q_w) = gyro_var_diag * att_dt + gyro_bias_var_diag * (std::pow(att_dt, 3) / 3.0);
+    Q_d.SubMatrix<3, 3>(0, SplitMEKFInds::gb_x) = -1.0 * gyro_bias_var_diag * (std::pow(att_dt, 2) / 2.0);
 
+    printMatHighDef(Q_d);
 
 
     // // Process noise
