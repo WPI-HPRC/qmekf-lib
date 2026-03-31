@@ -120,10 +120,10 @@ class SplitStateEstimator {
 
     // Error Inject functions
     template<int rows>
-    BLA::Matrix<13, 1> ekfAttCalcErrorInject(BLA::Matrix<rows, 1> &sens_reading, BLA::Matrix<rows, 13> H, BLA::Matrix<rows, 1> h, BLA::Matrix<rows, rows> R);
+    BLA::Matrix<13, 1> ekfAttCalcErrorInject(BLA::Matrix<rows, 1> &sens_reading, BLA::Matrix<rows, 12> H, BLA::Matrix<rows, 1> h, BLA::Matrix<rows, rows> R);
     
     template<int rows>
-    BLA::Matrix<10, 1> ekfPVCalcErrorInject(BLA::Matrix<rows, 1> &sens_reading, BLA::Matrix<rows, 13> H, BLA::Matrix<rows, 1> h, BLA::Matrix<rows, rows> R);
+    BLA::Matrix<10, 1> ekfPVCalcErrorInject(BLA::Matrix<rows, 1> &sens_reading, BLA::Matrix<rows, 10> H, BLA::Matrix<rows, 1> h, BLA::Matrix<rows, rows> R);
     
 
 

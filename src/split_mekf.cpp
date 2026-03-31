@@ -263,10 +263,14 @@ BLA::Matrix<10, 1> SplitStateEstimator::fastAccelProp(BLA::Matrix<3, 1> accel, f
     return pv_x;
 }
 
+// TODO test
 BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
-    BLA::Matrix<4, 1> att_update_relevant_times = {2, 3};
+    BLA::Matrix<2, 1> att_update_relevant_times = {2, 3};
+    // accel, mag
 
     float att_dt = curr_time - vecMax(extractSub(lastCalcTimes, att_update_relevant_times));
+
+    DBG.print(att_dt, 7);
 
     BLA::Matrix<3,3> gyroSkew = skewSymmetric(gyro_prev);
 
@@ -304,11 +308,24 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     BLA::Matrix<3, 1> gyro_bias_var = {0, 0, 0};
     BLA::Matrix<3, 3> gyro_bias_var_diag = toDiag(gyro_bias_var);
 
+    BLA::Matrix<3, 1> acc_bias_var = {0, 0, 0};
+    BLA::Matrix<3, 3> acc_bias_var_diag = toDiag(acc_bias_var);
 
-    Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, SplitMEKFInds::q_w) = gyro_var_diag * att_dt + gyro_bias_var_diag * (std::pow(att_dt, 3) / 3.0);
-    Q_d.SubMatrix<3, 3>(0, SplitMEKFInds::gb_x) = -1.0 * gyro_bias_var_diag * (std::pow(att_dt, 2) / 2.0);
+    BLA::Matrix<3, 1> mag_bias_var = {0, 0, 0};
+    BLA::Matrix<3, 3> mag_bias_var_diag = toDiag(mag_bias_var);
 
+
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, SplitMEKFInds::q_w) = gyro_var_diag * att_dt + gyro_bias_var_diag * (float) (std::pow(att_dt, 3) / 3.0);
+    Q_d.Submatrix<3, 3>(0, SplitMEKFInds::gb_x - 1) = -1.0f * gyro_bias_var_diag * (float) (std::pow(att_dt, 2) / 2.0);
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::gb_x - 1, 0) = -1.0f * gyro_bias_var_diag * (float) (std::pow(att_dt, 2) / 2.0);
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::gb_x - 1, SplitMEKFInds::gb_x - 1) = -1.0f * gyro_bias_var_diag * (float) (std::pow(att_dt, 2) / 2.0);
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::ab_x - 1, SplitMEKFInds::ab_x - 1) = acc_bias_var_diag * att_dt;
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::mb_x - 1, SplitMEKFInds::mb_x - 1) = mag_bias_var_diag * att_dt;
     printMatHighDef(Q_d);
+
+    att_P = att_P + Q_d;
+
+    return att_P;
 
 
     // // Process noise
@@ -380,101 +397,261 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     // DBG.println(P(2, 2), 7);
 }
 
+BLA::Matrix<10, 10> SplitStateEstimator::PVekfPredict(float curr_time) {
+    BLA::Matrix<1, 1> pv_update_relevant_times = {4};
+    // GPS and one day baro too (5)
+
+    float pv_dt = curr_time - vecMax(extractSub(lastCalcTimes, pv_update_relevant_times));
+
+    // DBG.print(pv_dt, 7);
+
+    BLA::Matrix<10, 10> F;
+    F.Fill(0);
+
+    // TODO: Fix indices
+    //Row 1 - 3
+    F.Submatrix<3, 3>(SplitMEKFInds::p_x, 0) = I_3;
+
+    // printMatHighDef(F);
+
+    
+    BLA::Matrix<10, 10> phi;
+    phi.Fill(0);
+
+    phi = I_10 + (F * pv_dt) + (0.5f * F * F * float(pow(pv_dt, 2)));
+
+    BLA::Matrix<10, 10> phi_t = ~phi;
+
+    pv_P = phi * pv_P * phi_t;
+
+    BLA::Matrix<10, 10> Q_d;
+
+    Q_d.Fill(0);
+
+    BLA::Matrix<3, 1> acc_var = {0.01, 0.01, 0.01};
+    BLA::Matrix<3, 3> acc_var_diag = toDiag(acc_var);
+
+    BLA::Matrix<3, 1> acc_bias_var = {0, 0, 0};
+    BLA::Matrix<3, 3> acc_bias_var_diag = toDiag(acc_bias_var);
+
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::v_x, SplitMEKFInds::v_x) = acc_var_diag * pv_dt + acc_bias_var_diag * (float) (std::pow(pv_dt, 3) / 3.0);
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::v_x, SplitMEKFInds::p_x) = acc_bias_var_diag * (float) (std::pow(pv_dt, 4) / 8.0) + acc_var_diag * (float) (std::pow(pv_dt, 2) / 2.0);
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::v_x, SplitMEKFInds::ab_x) = -1.0f * acc_bias_var_diag * (float) (std::pow(pv_dt, 2) / 2.0);
+
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::p_x, SplitMEKFInds::v_x) = acc_var_diag * (float) (std::pow(pv_dt, 2) / 2.0) + acc_bias_var_diag * (float) (std::pow(pv_dt, 4) / 8.0);
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::p_x, SplitMEKFInds::p_x) = acc_var_diag * (float) (std::pow(pv_dt, 3) / 3.0) + acc_bias_var_diag * (float) (std::pow(pv_dt, 5) / 20.0);
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::p_x, SplitMEKFInds::ab_x) = -1.0f * acc_bias_var_diag * (float) (std::pow(pv_dt, 3) / 6.0);
+
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::ab_x - 1, SplitMEKFInds::ab_x - 1) = acc_bias_var_diag * pv_dt;
+
+    // Q_d.Submatrix<3, 3>(0, SplitMEKFInds::gb_x - 1) = -1.0f * gyro_bias_var_diag * (float) (std::pow(att_dt, 2) / 2.0);
+    // Q_d.Submatrix<3, 3>(SplitMEKFInds::gb_x - 1, 0) = -1.0f * gyro_bias_var_diag * (float) (std::pow(att_dt, 2) / 2.0);
+    // Q_d.Submatrix<3, 3>(SplitMEKFInds::gb_x - 1, SplitMEKFInds::gb_x - 1) = -1.0f * gyro_bias_var_diag * (float) (std::pow(att_dt, 2) / 2.0);
+    // Q_d.Submatrix<3, 3>(SplitMEKFInds::ab_x - 1, SplitMEKFInds::ab_x - 1) = acc_bias_var_diag * att_dt;
+    // Q_d.Submatrix<3, 3>(SplitMEKFInds::mb_x - 1, SplitMEKFInds::mb_x - 1) = mag_bias_var_diag * att_dt;
+    // printMatHighDef(Q_d);
+
+    pv_P = pv_P + Q_d;
+
+    return pv_P;
+}
 
 
 BLA::Matrix<13, 1> SplitStateEstimator::runAccelUpdate(BLA::Matrix<3, 1> a_b, float curr_time) {
 
-    // BLA::Matrix<3, 1> unbiased_accel = a_b - extractSub(x, SplitMEKFInds::accelBias);
-    // // float u_a_n = BLA::Norm(unbiased_accel);
-    // // unbiased_accel = (unbiased_accel / u_a_n);
-    // BLA::Matrix<4,1> q = extractSub(x, SplitMEKFInds::quat);
+    BLA::Matrix<3, 1> unbiased_accel = a_b - extractSub(att_x, SplitMEKFInds::accelBias);
+    // float u_a_n = BLA::Norm(unbiased_accel);
+    // unbiased_accel = (unbiased_accel / u_a_n);
+    BLA::Matrix<4,1> q = extractSub(att_x, SplitMEKFInds::quat);
 
-    // BLA::Matrix<3, 1> h_accel = quat2DCMInv(q) * normal_i_ecef(launch_dcmned2ecef);
-    // // float h_a_n = BLA::Norm(h_accel);
-    // // h_accel = h_accel / h_a_n;
+    BLA::Matrix<3, 1> h_accel = quat2DCMInv(q) * normal_i_ecef(launch_dcmned2ecef);
+    // float h_a_n = BLA::Norm(h_accel);
+    // h_accel = h_accel / h_a_n;
 
 
-    // BLA::Matrix<3, 12> H_accel;
-    // H_accel.Fill(0);
-    // H_accel.Submatrix<3, 3>(0, 0) = -1.0f * skewSymmetric(h_accel);
-    // H_accel.Submatrix<3, 3>(SplitMEKFInds::ab_x - 1, SplitMEKFInds::ab_x - 1) = I_3;
+    BLA::Matrix<3, 12> H_accel;
+    H_accel.Fill(0);
+    H_accel.Submatrix<3, 3>(0, 0) = -1.0f * skewSymmetric(h_accel);
+    H_accel.Submatrix<3, 3>(SplitMEKFInds::ab_x - 1, SplitMEKFInds::ab_x - 1) = I_3;
 
-    // BLA::Matrix<3, 3> R;
-    // R.Fill(0);
-    // //tune ts
-    // float sigma_accel = 0.01f;
-    // float sigma_n = sigma_accel;
-    // //why wont diag wrk ugh
-    // R(0, 0) = sigma_n * sigma_n;
-    // R(1, 1) = sigma_n * sigma_n;
-    // R(2, 2) = sigma_n * sigma_n;
+    BLA::Matrix<3, 3> R;
+    R.Fill(0);
+    //tune ts
+    float sigma_accel = 0.01f;
+    float sigma_n = sigma_accel;
+    //why wont diag wrk ugh
+    R(0, 0) = sigma_n * sigma_n;
+    R(1, 1) = sigma_n * sigma_n;
+    R(2, 2) = sigma_n * sigma_n;
 
-    // lastCalcTimes(2) = curr_time;
-    // return ekfCalcErrorInject(unbiased_accel, H_accel, h_accel, R);
+    lastCalcTimes(2) = curr_time;
+    return ekfAttCalcErrorInject(unbiased_accel, H_accel, h_accel, R);
 }
 
-// BLA::Matrix<20, 1> SplitStateEstimator::runMagUpdate(BLA::Matrix<3, 1> m_b, float curr_time) {
-//     m_b = vimu_const::mag_to_board * m_b;
+BLA::Matrix<13, 1> SplitStateEstimator::runMagUpdate(BLA::Matrix<3, 1> m_b, float curr_time) {
 
-//     BLA::Matrix<3, 1> unbiased_mag = m_b - extractSub(x, SplitMEKFInds::magBias);
-//     float u_m_n = BLA::Norm(unbiased_mag);
-//     unbiased_mag = unbiased_mag / u_m_n;
-//     BLA::Matrix<4,1> q = extractSub(x, SplitMEKFInds::quat);
+    BLA::Matrix<3, 1> unbiased_mag = m_b - extractSub(att_x, SplitMEKFInds::magBias);
+    // float u_a_n = BLA::Norm(unbiased_accel);
+    // unbiased_accel = (unbiased_accel / u_a_n);
+    BLA::Matrix<4,1> q = extractSub(att_x, SplitMEKFInds::quat);
 
-//     BLA::Matrix<3, 1> h_mag = quat2DCM(q) * m_i_ecef(launch_dcmned2ecef);
+    BLA::Matrix<3, 1> h_mag = quat2DCMInv(q) * m_i_ecef(launch_dcmned2ecef);
+    // float h_a_n = BLA::Norm(h_accel);
+    // h_accel = h_accel / h_a_n;
 
-//     BLA::Matrix<3, 19> H_mag;
-//     H_mag.Fill(0);
-//     H_mag.Submatrix<3, 3>(0, 0) = -1.0f * skewSymmetric(h_mag);
-//     H_mag.Submatrix<3, 3>(0, SplitMEKFInds::mb_x - 1) = I_3;
 
-//     float sigma_mag = 0.10f;
-//     float sigma_dir = sigma_mag / u_m_n;
-//     float var = sigma_dir * sigma_dir;
+    BLA::Matrix<3, 12> H_mag;
+    H_mag.Fill(0);
+    H_mag.Submatrix<3, 3>(0, 0) = -1.0f * skewSymmetric(h_mag);
+    H_mag.Submatrix<3, 3>(0, SplitMEKFInds::mb_x - 1) = I_3;
 
-//     BLA::Matrix<3, 3> R;
-//     R.Fill(0);
-//     R(0, 0) = var;
-//     R(1, 1) = var;
-//     R(2, 2) = var;
+    BLA::Matrix<3, 3> R;
+    R.Fill(0);
+    //tune ts
+    float sigma_mag = 0.01f;
+    float sigma_n = sigma_mag;
+    //why wont diag wrk ugh
+    R(0, 0) = sigma_n * sigma_n;
+    R(1, 1) = sigma_n * sigma_n;
+    R(2, 2) = sigma_n * sigma_n;
 
-//     lastCalcTimes(3) = curr_time;
-//     return ekfCalcErrorInject(unbiased_mag, H_mag, h_mag, R);
-// }
+    lastCalcTimes(3) = curr_time;
+    return ekfAttCalcErrorInject(unbiased_mag, H_mag, h_mag, R);
+}
 
-// BLA::Matrix<20, 1> SplitStateEstimator::runGPSUpdate(BLA::Matrix<3, 1> gpsPos, BLA::Matrix<3, 1> gpsVel, bool velOrientation, float curr_time) {
-//     // TODO something is wrong with gps vel
-//     lastCalcTimes(4) = curr_time;
-//     if (velOrientation) {
-//         BLA::Matrix<9, 1> combined_sens = vstack(vstack(gpsVel, gpsPos), gpsVel);
-//         BLA::Matrix<3, 1> v_b = {BLA::Norm(gpsVel), 0, 0};
-//         BLA::Matrix<4, 1> q = extractSub(x, SplitMEKFInds::quat);
-//         BLA::Matrix<3, 1> h_vi = quat2DCM(quatConjugate(q)) * v_b;
-//         BLA::Matrix<9, 1> h_gps = vstack(extractSub(x, vstack(SplitMEKFInds::vel, SplitMEKFInds::pos)), extractSub(x, SplitMEKFInds::vel));
-        
-//         BLA::Matrix<9, 19> H_gps;
-//         H_gps.Fill(0);
-//         H_gps.Submatrix<3, 3>(0, SplitMEKFInds::v_x - 1) = I_3;
-//         H_gps.Submatrix<3, 3>(3, SplitMEKFInds::p_x - 1) = I_3;
-//         H_gps.Submatrix<3, 3>(6, 0) = -1.0f * quat2DCM(quatConjugate(q)) * skewSymmetric(v_b);
+BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b, BLA::Matrix<3, 1> m_b, float curr_time) {
+    BLA::Matrix<3, 1> unbiased_accel = a_b - extractSub(att_x, SplitMEKFInds::accelBias);
+    BLA::Matrix<3, 1> unbiased_mag = m_b - extractSub(att_x, SplitMEKFInds::magBias);
+    BLA::Matrix<6, 1> unbiased_sens = vstack(a_b, m_b);
+    // float u_a_n = BLA::Norm(unbiased_accel);
+    // unbiased_accel = (unbiased_accel / u_a_n);
+    BLA::Matrix<4,1> q = extractSub(att_x, SplitMEKFInds::quat);
 
-//         BLA::Matrix<9, 9> R = toDiag(vstack(vstack(Max10S_const::gpsVel_var, Max10S_const::gpsPos_var), Max10S_const::gpsVel_var));
+    BLA::Matrix<3, 1> h_accel = quat2DCMInv(q) * normal_i_ecef(launch_dcmned2ecef);
+    BLA::Matrix<3, 1> h_mag = quat2DCMInv(q) * m_i_ecef(launch_dcmned2ecef);
+    BLA::Matrix<6, 1> h_accel_mag = vstack(h_accel, h_mag);
+    // float h_a_n = BLA::Norm(h_accel);
+    // h_accel = h_accel / h_a_n;
 
-//         return ekfCalcErrorInject(combined_sens, H_gps, h_gps, R);
-//     } else {
-//         BLA::Matrix<6, 1> combined_sens = vstack(gpsVel, gpsPos);
-//         BLA::Matrix<6, 19> H_gps;
-//         H_gps.Fill(0);
-//         H_gps.Submatrix<3, 3>(0, SplitMEKFInds::v_x - 1) = I_3;
-//         H_gps.Submatrix<3, 3>(3, SplitMEKFInds::p_x - 1) = I_3;
 
-//         BLA::Matrix<6, 1> h_gps = extractSub(x, vstack(SplitMEKFInds::vel, SplitMEKFInds::pos));
+    BLA::Matrix<6, 12> H_accel_mag;
+    H_accel_mag.Fill(0);
+    H_accel_mag.Submatrix<3, 3>(0, 0) = -1.0f * skewSymmetric(h_accel);
+    H_accel_mag.Submatrix<3, 3>(0, SplitMEKFInds::ab_x - 1) = I_3;
+    H_accel_mag.Submatrix<3, 3>(3, 6) = -1.0f * skewSymmetric(h_mag);
+    H_accel_mag.Submatrix<3, 3>(3, SplitMEKFInds::mb_x - 1) = I_3;
 
-//         BLA::Matrix<6, 6> R = toDiag(vstack(Max10S_const::gpsVel_var, Max10S_const::gpsPos_var));
-//         return ekfCalcErrorInject(combined_sens, H_gps, h_gps, R);
-//     }
+    BLA::Matrix<6, 6> R;
+    R.Fill(0);
+    //tune ts
+    float sigma_mag = 0.01f;
+    float sigma_accel = 0.01f;
+    //why wont diag wrk ugh
+    R(0, 0) = sigma_accel * sigma_accel;
+    R(1, 1) = sigma_accel * sigma_accel;
+    R(2, 2) = sigma_accel * sigma_accel;
+    R(3, 3) = sigma_mag * sigma_mag;
+    R(4, 4) = sigma_mag * sigma_mag;
+    R(5, 5) = sigma_mag * sigma_mag;
+
+    lastCalcTimes(2) = curr_time;
+    lastCalcTimes(3) = curr_time;
+
+    return ekfAttCalcErrorInject(unbiased_sens, H_accel_mag, h_accel_mag, R);
+}
+
+BLA::Matrix<10, 1> SplitStateEstimator::runGPSPVUpdate(BLA::Matrix<3, 1> gpsVel, BLA::Matrix<3, 1> gpsPos, float curr_time) {
+    BLA::Matrix<6, 1> combined_sens = vstack(gpsVel, gpsPos);
+    BLA::Matrix<6, 10> H_gps;
+    H_gps.Fill(0);
+    H_gps.Submatrix<3, 3>(0, SplitMEKFInds::v_x) = I_3;
+    H_gps.Submatrix<3, 3>(3, SplitMEKFInds::p_x) = I_3;
+
+    BLA::Matrix<6, 1> h_gps = extractSub(pv_x, vstack(SplitMEKFInds::vel, SplitMEKFInds::pos));
+
+    BLA::Matrix<6, 6> R = toDiag(vstack(Max10S_const::gpsVel_var, Max10S_const::gpsPos_var));
+
+    lastCalcTimes(4) = curr_time;
     
-// }
+    return ekfPVCalcErrorInject(combined_sens, H_gps, h_gps, R);
+}
+
+template<int rows>
+BLA::Matrix<13, 1> SplitStateEstimator::ekfAttCalcErrorInject(BLA::Matrix<rows, 1> &sens_reading, BLA::Matrix<rows, 12> H, BLA::Matrix<rows, 1> h, BLA::Matrix<rows, rows> R) {
+    BLA::Matrix<rows, 1> residual = sens_reading - h;
+    
+    BLA::Matrix<rows, rows> S;
+    BLA::Matrix<12, rows> K;
+    BLA::Matrix<12, rows> H_t = ~H;
+    
+    S = H * att_P * H_t + R;
+    K = (att_P * H_t) * BLA::Inverse(S);
+    //joseph stabalize on it
+    BLA::Matrix<12, 12> IKH = I_12 - K * H;
+    att_P = IKH * att_P * ~IKH + K * R * ~K;
+    BLA::Matrix<12, 1> postErrorState = K * residual;
+    
+    // Inject error angles into quat
+    BLA::Matrix<3, 1> alpha = extractSub(postErrorState, SplitMEKFInds::smallAngle);
+
+    BLA::Matrix old_q = extractSub(att_x, SplitMEKFInds::quat);
+    BLA::Matrix<4, 1> q = quatMultiply(old_q, smallAnglerotVec2dQuat(alpha));
+    float q_norm = BLA::Norm(q);
+    q = q / q_norm;
+    /* q = q / q_norm;    trying left mult 
+    BLA::Matrix old_q = extractSub(x, SplitMEKFInds::quat);
+    BLA::Matrix<4, 1> dq = smallAnglerotVec2dQuat(alpha);
+    BLA::Matrix<4, 1> q  = quatMultiply(dq, old_q);
+    q = q / BLA::Norm(q);
+    */
+    att_x(0) = q(0);
+    att_x(1) = q(1);
+    att_x(2) = q(2);
+    att_x(3) = q(3);
+    att_x(4) += postErrorState(3);
+    att_x(5) += postErrorState(4);
+    att_x(6) += postErrorState(5);
+    att_x(7) += postErrorState(6);
+    att_x(8) += postErrorState(7);
+    att_x(9) += postErrorState(8);
+    att_x(10) += postErrorState(9);
+    att_x(11) += postErrorState(10);
+    att_x(12) += postErrorState(11);
+
+    
+    return att_x;
+}
+
+template<int rows>
+BLA::Matrix<10, 1> SplitStateEstimator::ekfPVCalcErrorInject(BLA::Matrix<rows, 1> &sens_reading, BLA::Matrix<rows, 10> H, BLA::Matrix<rows, 1> h, BLA::Matrix<rows, rows> R) {
+    BLA::Matrix<rows, 1> residual = sens_reading - h;
+    
+    BLA::Matrix<rows, rows> S;
+    BLA::Matrix<10, rows> K;
+    BLA::Matrix<10, rows> H_t = ~H;
+    
+    S = H * pv_P * H_t + R;
+    K = (pv_P * H_t) * BLA::Inverse(S);
+    //joseph stabalize on it
+    BLA::Matrix<10, 10> IKH = I_10 - K * H;
+    pv_P = IKH * pv_P * ~IKH + K * R * ~K;
+    BLA::Matrix<10, 1> postErrorState = K * residual;
+
+    pv_x(0) += postErrorState(0);
+    pv_x(1) += postErrorState(1);
+    pv_x(2) += postErrorState(2);
+    pv_x(3) += postErrorState(3);
+    pv_x(4) += postErrorState(4);
+    pv_x(5) += postErrorState(5);
+    pv_x(6) += postErrorState(6);
+    pv_x(7) += postErrorState(7);
+    pv_x(8) += postErrorState(8);
+    pv_x(9) += postErrorState(9);
+
+    
+    return pv_x;
+}
+
 
 // BLA::Matrix<20, 1> SplitStateEstimator::runBaroUpdate(BLA::Matrix<1, 1> baro, float curr_time) {
 
