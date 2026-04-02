@@ -488,6 +488,69 @@ BLA::Matrix<13, 1> SplitStateEstimator::runAccelUpdate(BLA::Matrix<3, 1> a_b, fl
     return ekfAttCalcErrorInject(unbiased_accel, H_accel, h_accel, R);
 }
 
+BLA::Matrix<13, 1> SplitStateEstimator::runGPSAttUpdate(BLA::Matrix<3, 1> gpsVel, float curr_time) {
+    BLA::Matrix<3, 1> v_b = {BLA::Norm(gpsVel), 0, 0};
+
+    BLA::Matrix<4,1> q = extractSub(att_x, SplitMEKFInds::quat);
+
+    BLA::Matrix<3, 1> h_gps = quat2DCM(q) * v_b;
+
+
+    BLA::Matrix<3, 12> H_gps;
+    H_gps.Fill(0);
+    H_gps.Submatrix<3, 3>(0, 0) = -1.0f * quat2DCM(q) * skewSymmetric(v_b); // -1.0 * quat2rotm(att_state(1:4)') * skewSymmetric(v_b)
+
+    BLA::Matrix<3, 3> R;
+    R.Fill(0);
+    //tune ts
+    float sigma_vel = 0.05f;
+    //why wont diag wrk ugh
+    R(0, 0) = sigma_vel * sigma_vel;
+    R(1, 1) = sigma_vel * sigma_vel;
+    R(2, 2) = sigma_vel * sigma_vel;
+
+    lastCalcTimes(4) = curr_time;
+    return ekfAttCalcErrorInject(gpsVel, H_gps, h_gps, R);
+}
+
+BLA::Matrix<13, 1> SplitStateEstimator::runGPSMagAttUpdate(BLA::Matrix<3, 1> gpsVel, BLA::Matrix<3, 1> m_b, float curr_time) {
+    BLA::Matrix<3, 1> v_b = {BLA::Norm(gpsVel), 0, 0};
+    BLA::Matrix<3, 1> unbiased_mag = m_b - extractSub(att_x, SplitMEKFInds::magBias);
+    BLA::Matrix<6, 1> unbiased_sens = vstack(v_b, m_b);
+
+    BLA::Matrix<4,1> q = extractSub(att_x, SplitMEKFInds::quat);
+
+    BLA::Matrix<3, 1> h_gps = quat2DCM(q) * v_b;
+    BLA::Matrix<3, 1> h_mag = quat2DCMInv(q) * m_i_ecef(launch_dcmned2ecef);
+    BLA::Matrix<6, 1> h_gps_mag = vstack(h_gps, h_mag);
+
+
+    BLA::Matrix<6, 12> H_gps_mag;
+    H_gps_mag.Fill(0);
+    H_gps_mag.Submatrix<3, 3>(0, 0) = -1.0f * quat2DCM(q) * skewSymmetric(v_b);
+    H_gps_mag.Submatrix<3, 3>(3, 6) = -1.0f * skewSymmetric(h_mag);
+    H_gps_mag.Submatrix<3, 3>(3, SplitMEKFInds::mb_x - 1) = I_3;
+
+    BLA::Matrix<6, 6> R;
+    R.Fill(0);
+    //tune ts
+    float sigma_mag = 0.01f;
+    float sigma_gps = 0.05f;
+    //why wont diag wrk ugh
+    R(0, 0) = sigma_gps * sigma_gps;
+    R(1, 1) = sigma_gps * sigma_gps;
+    R(2, 2) = sigma_gps * sigma_gps;
+    R(3, 3) = sigma_mag * sigma_mag;
+    R(4, 4) = sigma_mag * sigma_mag;
+    R(5, 5) = sigma_mag * sigma_mag;
+
+    lastCalcTimes(3) = curr_time;
+    lastCalcTimes(4) = curr_time;
+
+    return ekfAttCalcErrorInject(unbiased_sens, H_gps_mag, h_gps_mag, R);
+
+}
+
 BLA::Matrix<13, 1> SplitStateEstimator::runMagUpdate(BLA::Matrix<3, 1> m_b, float curr_time) {
 
     BLA::Matrix<3, 1> unbiased_mag = m_b - extractSub(att_x, SplitMEKFInds::magBias);
