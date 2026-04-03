@@ -529,7 +529,11 @@ BLA::Matrix<13, 1> SplitStateEstimator::runGPSMagAttUpdate(BLA::Matrix<3, 1> gps
     BLA::Matrix<6, 12> H_gps_mag;
     H_gps_mag.Fill(0);
     H_gps_mag.Submatrix<3, 3>(0, 0) = -1.0f * quat2DCM(q) * skewSymmetric(v_b);
+<<<<<<< Updated upstream
     H_gps_mag.Submatrix<3, 3>(3, 0) = skewSymmetric(h_mag);
+=======
+    H_gps_mag.Submatrix<3, 3>(3, 6) = skewSymmetric(h_mag);
+>>>>>>> Stashed changes
     H_gps_mag.Submatrix<3, 3>(3, SplitMEKFInds::mb_x - 1) = I_3;
 
     BLA::Matrix<6, 6> R;
@@ -602,7 +606,11 @@ BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b,
     H_accel_mag.Fill(0);
     H_accel_mag.Submatrix<3, 3>(0, 0) = skewSymmetric(h_accel);
     H_accel_mag.Submatrix<3, 3>(0, SplitMEKFInds::ab_x - 1) = I_3;
+<<<<<<< Updated upstream
     H_accel_mag.Submatrix<3, 3>(3, 0) = skewSymmetric(h_mag);
+=======
+    H_accel_mag.Submatrix<3, 3>(3, 6) = skewSymmetric(h_mag);
+>>>>>>> Stashed changes
     H_accel_mag.Submatrix<3, 3>(3, SplitMEKFInds::mb_x - 1) = I_3;
 
     BLA::Matrix<6, 6> R;
