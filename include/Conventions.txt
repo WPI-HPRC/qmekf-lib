@@ -4,7 +4,7 @@ Notes:
 TODO test:
 1. P matrix diverges with no update
 2. Update when stationary and doesn't drift over time
-3. Lowkey chillin
+3. See how accurate gyro prop is when stationary
 4. Do the CSV stuff
 
 lastCalcTimes:

@@ -327,74 +327,75 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
 
     return att_P;
 
-
-    // // Process noise
-    // BLA::Matrix<19, 19> Q_d;
-    // Q_d.Fill(0);
-
-
-    // //Sorry random numbers theyre in the output.txt file from the allan variance tests
-    // BLA::Matrix<3, 3> gyro_var_diag;
-    // gyro_var_diag.Fill(0);
-    // gyro_var_diag(0, 0) = 0.00015761;
-    // gyro_var_diag(1, 1) = 0.00012345;
-    // gyro_var_diag(2, 2) = 0.00010394;
-
-    // BLA::Matrix<3, 3> gyro_bias_var_diag;
-    // gyro_bias_var_diag.Fill(0);
-    // gyro_bias_var_diag(0, 0) = 0.0f; // 0.1152665 / 1000.0f * (PI / 180.0f);
-    // gyro_bias_var_diag(1, 1) = 0.0f; // 0.1621635 / 1000.0f * (PI / 180.0f);
-    // gyro_bias_var_diag(2, 2) = 0.0f; // 0.09894897 / 1000.0f * (PI / 180.0f);
-
-    // BLA::Matrix<3, 3> accel_var_diag;
-    // accel_var_diag.Fill(0);
-    // accel_var_diag(0, 0) = 0.0013;
-    // accel_var_diag(1, 1) = 0.0013;
-    // accel_var_diag(2, 2) = 0.0026;
-
-    // BLA::Matrix<3, 3> accel_bias_var_diag;
-    // accel_bias_var_diag.Fill(0);
-    // accel_bias_var_diag(0, 0) = 0.0f; //0.01474176 * 0.00980665f;
-    // accel_bias_var_diag(1, 1) = 0.0f; // 0.03503381 * 0.00980665f;
-    // accel_bias_var_diag(2, 2) = 0.0f; // 0.0043195624 * 0.00980665f;
-
-    // BLA::Matrix<3, 3> mag_bias_var_diag;
-    // mag_bias_var_diag.Fill(0);
-    // mag_bias_var_diag(0, 0) = 0.008301463f;
-    // mag_bias_var_diag(1, 1) = 0.003226824f;
-    // mag_bias_var_diag(2, 2) = 0.01745155f;
-
-    // BLA::Matrix<1, 1> baro_bias_var_diag;
-    // baro_bias_var_diag.Fill(0);
-    // baro_bias_var_diag(0, 0) = 0.01243823f;
-
-    // Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, SplitMEKFInds::q_w) = (gyro_var_diag * dt) + (gyro_bias_var_diag * float((pow(dt, 3) / 3.0)));
-    // Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, 9) = -1.0f * gyro_bias_var_diag * float((pow(dt, 2) / 2));
-
-    // Q_d.Submatrix<3 ,3>(3, 3) = accel_var_diag * dt + accel_bias_var_diag * float((pow(dt, 3) / 3));
-    // Q_d.Submatrix<3, 3>(3, 6) = accel_bias_var_diag * float((pow(dt ,4) / 8.0)) + accel_var_diag * float((pow(dt, 2) / 2.0));
-    // Q_d.Submatrix<3, 3>(3, 10) = -1.0f * accel_bias_var_diag * float((pow(dt, 2) / 2.0));
-
-    // Q_d.Submatrix<3, 3>(6, 3) = accel_var_diag * float((pow(dt, 2) / 2)) + accel_bias_var_diag * float((pow(dt, 4) / 8.0));
-    // Q_d.Submatrix<3, 3>(6, 6) = accel_var_diag * float((pow(dt, 3) / 3.0)) + accel_bias_var_diag * float((pow(dt, 5) / 20.0));
-    // Q_d.Submatrix<3, 3>(6, 10) = -1.0f * accel_bias_var_diag * float((pow(dt, 3) / 6.0));
-
-    // Q_d.Submatrix<3, 3>(9, 0) = -1.0f * gyro_bias_var_diag * float((pow(dt, 2) / 2.0));
-    // Q_d.Submatrix<3, 3>(9, 9) = gyro_bias_var_diag * float((pow(dt, 2) / 2.0));
-
-    // Q_d.Submatrix<3, 3>(12, 3) = -1.0f * accel_bias_var_diag * float((pow(dt, 2) / 2.0));
-    // Q_d.Submatrix<3, 3>(12, 6) = -1.0f * accel_bias_var_diag * float((pow(dt, 3) / 6.0));
-    // Q_d.Submatrix<3, 3>(12, 12) = accel_bias_var_diag * dt;
-
-    // Q_d.Submatrix<3, 3>(15, 15) = mag_bias_var_diag * dt;
-    // Q_d.Submatrix<1, 1>(18, 18) = baro_bias_var_diag * dt;
+/*
+    // Process noise
+    BLA::Matrix<19, 19> Q_d;
+    Q_d.Fill(0);
 
 
-    // DBG.print(P(0, 0), 7);
-    // DBG.print(", ");
-    // DBG.print(P(1, 1), 7);
-    // DBG.print(", ");
-    // DBG.println(P(2, 2), 7);
+    //Sorry random numbers theyre in the output.txt file from the allan variance tests
+    BLA::Matrix<3, 3> gyro_var_diag;
+    gyro_var_diag.Fill(0);
+    gyro_var_diag(0, 0) = 0.00015761;
+    gyro_var_diag(1, 1) = 0.00012345;
+    gyro_var_diag(2, 2) = 0.00010394;
+
+    BLA::Matrix<3, 3> gyro_bias_var_diag;
+    gyro_bias_var_diag.Fill(0);
+    gyro_bias_var_diag(0, 0) = 0.0f; // 0.1152665 / 1000.0f * (PI / 180.0f);
+    gyro_bias_var_diag(1, 1) = 0.0f; // 0.1621635 / 1000.0f * (PI / 180.0f);
+    gyro_bias_var_diag(2, 2) = 0.0f; // 0.09894897 / 1000.0f * (PI / 180.0f);
+
+    BLA::Matrix<3, 3> accel_var_diag;
+    accel_var_diag.Fill(0);
+    accel_var_diag(0, 0) = 0.0013;
+    accel_var_diag(1, 1) = 0.0013;
+    accel_var_diag(2, 2) = 0.0026;
+
+    BLA::Matrix<3, 3> accel_bias_var_diag;
+    accel_bias_var_diag.Fill(0);
+    accel_bias_var_diag(0, 0) = 0.0f; //0.01474176 * 0.00980665f;
+    accel_bias_var_diag(1, 1) = 0.0f; // 0.03503381 * 0.00980665f;
+    accel_bias_var_diag(2, 2) = 0.0f; // 0.0043195624 * 0.00980665f;
+
+    BLA::Matrix<3, 3> mag_bias_var_diag;
+    mag_bias_var_diag.Fill(0);
+    mag_bias_var_diag(0, 0) = 0.008301463f;
+    mag_bias_var_diag(1, 1) = 0.003226824f;
+    mag_bias_var_diag(2, 2) = 0.01745155f;
+
+    BLA::Matrix<1, 1> baro_bias_var_diag;
+    baro_bias_var_diag.Fill(0);
+    baro_bias_var_diag(0, 0) = 0.01243823f;
+
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, SplitMEKFInds::q_w) = (gyro_var_diag * dt) + (gyro_bias_var_diag * float((pow(dt, 3) / 3.0)));
+    Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, 9) = -1.0f * gyro_bias_var_diag * float((pow(dt, 2) / 2));
+
+    Q_d.Submatrix<3 ,3>(3, 3) = accel_var_diag * dt + accel_bias_var_diag * float((pow(dt, 3) / 3));
+    Q_d.Submatrix<3, 3>(3, 6) = accel_bias_var_diag * float((pow(dt ,4) / 8.0)) + accel_var_diag * float((pow(dt, 2) / 2.0));
+    Q_d.Submatrix<3, 3>(3, 10) = -1.0f * accel_bias_var_diag * float((pow(dt, 2) / 2.0));
+
+    Q_d.Submatrix<3, 3>(6, 3) = accel_var_diag * float((pow(dt, 2) / 2)) + accel_bias_var_diag * float((pow(dt, 4) / 8.0));
+    Q_d.Submatrix<3, 3>(6, 6) = accel_var_diag * float((pow(dt, 3) / 3.0)) + accel_bias_var_diag * float((pow(dt, 5) / 20.0));
+    Q_d.Submatrix<3, 3>(6, 10) = -1.0f * accel_bias_var_diag * float((pow(dt, 3) / 6.0));
+
+    Q_d.Submatrix<3, 3>(9, 0) = -1.0f * gyro_bias_var_diag * float((pow(dt, 2) / 2.0));
+    Q_d.Submatrix<3, 3>(9, 9) = gyro_bias_var_diag * float((pow(dt, 2) / 2.0));
+
+    Q_d.Submatrix<3, 3>(12, 3) = -1.0f * accel_bias_var_diag * float((pow(dt, 2) / 2.0));
+    Q_d.Submatrix<3, 3>(12, 6) = -1.0f * accel_bias_var_diag * float((pow(dt, 3) / 6.0));
+    Q_d.Submatrix<3, 3>(12, 12) = accel_bias_var_diag * dt;
+
+    Q_d.Submatrix<3, 3>(15, 15) = mag_bias_var_diag * dt;
+    Q_d.Submatrix<1, 1>(18, 18) = baro_bias_var_diag * dt;
+
+
+    DBG.print(P(0, 0), 7);
+    DBG.print(", ");
+    DBG.print(P(1, 1), 7);
+    DBG.print(", ");
+    DBG.println(P(2, 2), 7);
+    */
 }
 
 BLA::Matrix<10, 10> SplitStateEstimator::PVekfPredict(float curr_time) {
@@ -471,8 +472,8 @@ BLA::Matrix<13, 1> SplitStateEstimator::runAccelUpdate(BLA::Matrix<3, 1> a_b, fl
 
     BLA::Matrix<3, 12> H_accel;
     H_accel.Fill(0);
-    H_accel.Submatrix<3, 3>(0, 0) = -1.0f * skewSymmetric(h_accel);
-    H_accel.Submatrix<3, 3>(SplitMEKFInds::ab_x - 1, SplitMEKFInds::ab_x - 1) = I_3;
+    H_accel.Submatrix<3, 3>(0, 0) = skewSymmetric(h_accel);
+    H_accel.Submatrix<3, 3>(0, SplitMEKFInds::ab_x - 1) = I_3;
 
     BLA::Matrix<3, 3> R;
     R.Fill(0);
@@ -528,7 +529,7 @@ BLA::Matrix<13, 1> SplitStateEstimator::runGPSMagAttUpdate(BLA::Matrix<3, 1> gps
     BLA::Matrix<6, 12> H_gps_mag;
     H_gps_mag.Fill(0);
     H_gps_mag.Submatrix<3, 3>(0, 0) = -1.0f * quat2DCM(q) * skewSymmetric(v_b);
-    H_gps_mag.Submatrix<3, 3>(3, 6) = -1.0f * skewSymmetric(h_mag);
+    H_gps_mag.Submatrix<3, 3>(3, 0) = skewSymmetric(h_mag);
     H_gps_mag.Submatrix<3, 3>(3, SplitMEKFInds::mb_x - 1) = I_3;
 
     BLA::Matrix<6, 6> R;
@@ -565,7 +566,7 @@ BLA::Matrix<13, 1> SplitStateEstimator::runMagUpdate(BLA::Matrix<3, 1> m_b, floa
 
     BLA::Matrix<3, 12> H_mag;
     H_mag.Fill(0);
-    H_mag.Submatrix<3, 3>(0, 0) = -1.0f * skewSymmetric(h_mag);
+    H_mag.Submatrix<3, 3>(0, 0) = skewSymmetric(h_mag);
     H_mag.Submatrix<3, 3>(0, SplitMEKFInds::mb_x - 1) = I_3;
 
     BLA::Matrix<3, 3> R;
@@ -599,9 +600,9 @@ BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b,
 
     BLA::Matrix<6, 12> H_accel_mag;
     H_accel_mag.Fill(0);
-    H_accel_mag.Submatrix<3, 3>(0, 0) = -1.0f * skewSymmetric(h_accel);
+    H_accel_mag.Submatrix<3, 3>(0, 0) = skewSymmetric(h_accel);
     H_accel_mag.Submatrix<3, 3>(0, SplitMEKFInds::ab_x - 1) = I_3;
-    H_accel_mag.Submatrix<3, 3>(3, 6) = -1.0f * skewSymmetric(h_mag);
+    H_accel_mag.Submatrix<3, 3>(3, 0) = skewSymmetric(h_mag);
     H_accel_mag.Submatrix<3, 3>(3, SplitMEKFInds::mb_x - 1) = I_3;
 
     BLA::Matrix<6, 6> R;
