@@ -4,46 +4,6 @@
 #include <iostream>
 
 
-BLA::Matrix<3, 3> QuaternionUtils::quatToRot(const BLA::Matrix<4, 1> &quat) {
-    float w = quat(0);
-    float x = quat(1);
-    float y = quat(2);
-    float z = quat(3);
-
-    BLA::Matrix<3, 3> rot;
-
-    // Row1
-    rot(0, 0) = 1 - 2 * y * y - 2 * z * z;
-    rot(0, 1) = 2 * x * y - 2 * w * z;
-    rot(0, 2) = 2 * x * z + 2 * w * y;
-
-    // Row2
-    rot(1, 0) = 2 * x * y + 2 * w * z;
-    rot(1, 1) = 1 - 2 * x * x - 2 * z * z;
-    rot(1, 2) = 2 * y * z - 2 * w * x;
-
-    // Row3
-    rot(2, 0) = 2 * x * z - 2 * w * y;
-    rot(2, 1) = 2 * y * z + 2 * w * x;
-    rot(2, 2) = 1 - 2 * x * x - 2 * y * y;
-
-    return rot;
-}
-
-BLA::Matrix<3, 1> QuaternionUtils::getUpVector(const BLA::Matrix<3, 3> &rot) {
-    return BLA::Matrix<3, 1>(rot(0, 1), rot(1, 1), rot(2, 1));
-}
-
-BLA::Matrix<3, 1> QuaternionUtils::getForwardVector(const BLA::Matrix<3, 3> &rot) {
-    return BLA::Matrix<3, 1>(rot(0, 2), rot(1, 2), rot(2, 2));
-}
-
-BLA::Matrix<3,1> QuaternionUtils::getRightVector(const BLA::Matrix<3,3> &rot) {
-    return BLA::Matrix<3,1>(rot(0,0), rot(1,0), rot(2,0));
-}
-
-
-// TODO redo
 BLA::Matrix<3, 3> QuaternionUtils::quat2DCM(const BLA::Matrix<4, 1> &quat) {
     float w = quat(0);
     float x = quat(1);
@@ -70,13 +30,13 @@ BLA::Matrix<3, 3> QuaternionUtils::quat2DCM(const BLA::Matrix<4, 1> &quat) {
     return ~rot;
 }
 
-// TODO dont be lazy and write
+
 BLA::Matrix<3, 3> QuaternionUtils::quat2DCMInv(const BLA::Matrix<4, 1> &quat) {
     // TODO one day rewrite it to make it more efficient
     return ~quat2DCM(quat);
 }
 
-// Works
+
 BLA::Matrix<3, 3> QuaternionUtils::skewSymmetric(const BLA::Matrix<3, 1> &vec) {
     // Can rewrite as hstack
     BLA::Matrix<3, 3> mat;
@@ -97,7 +57,7 @@ BLA::Matrix<3, 3> QuaternionUtils::skewSymmetric(const BLA::Matrix<3, 1> &vec) {
 
 }
 
-// Works
+
 BLA::Matrix<4, 1> QuaternionUtils::rotVec2dQuat(const BLA::Matrix<3, 1> &vec) {
     BLA::Matrix<4, 1> quat;
 
@@ -113,7 +73,7 @@ BLA::Matrix<4, 1> QuaternionUtils::rotVec2dQuat(const BLA::Matrix<3, 1> &vec) {
     return quat;
 }
 
-// Works
+
 BLA::Matrix<4, 1> QuaternionUtils::smallAnglerotVec2dQuat(const BLA::Matrix<3, 1> &vec) {
     BLA::Matrix<4, 1> quat;
     quat(0, 0) = 1.0;
@@ -124,7 +84,7 @@ BLA::Matrix<4, 1> QuaternionUtils::smallAnglerotVec2dQuat(const BLA::Matrix<3, 1
     return quat;
 }
 
-// Works
+
 BLA::Matrix<4, 1> QuaternionUtils::dcm2quat(const BLA::Matrix<3, 3> &dcm) {
     BLA::Matrix<3, 3> dcm_t = ~dcm;
     BLA::Matrix<4, 1> q_sq;
@@ -170,61 +130,32 @@ BLA::Matrix<4, 1> QuaternionUtils::dcm2quat(const BLA::Matrix<3, 3> &dcm) {
     return q_ret;
 }
 
-// TODO test 
 
 BLA::Matrix<4, 1> QuaternionUtils::quatMultiply(const BLA::Matrix<4, 1> &p, const BLA::Matrix<4, 1> &q) {
+    // https://www.mathworks.com/help/aerotbx/ug/quatmultiply.html
     BLA::Matrix<4, 1> quat;
 
-    quat(0, 0) = p(0, 0) * q(0, 0) - p(1, 0) * q(1, 0) - p(2, 0) * q(2, 0) - p(3, 0) * q(3, 0);
-    quat(1, 0) = p(0, 0) * q(1, 0) + p(1, 0) * q(0, 0) + p(2, 0) * q(3, 0) - p(3, 0) * q(2, 0);
-    quat(2, 0) = p(0, 0) * q(2, 0)  - p(1, 0) * q(3, 0) + p(2, 0) * q(1, 0) + p(3, 0) * q(1, 0);
-    quat(3, 0) = p(0, 0) * q(3, 0) + p(1, 0) * q(2, 0) - p(2, 0) * q(1, 0) + p(3, 0) * q(3, 0);
+    // This kind of works
+    // quat(0, 0) = p(0, 0) * q(0, 0) - p(1, 0) * q(1, 0) - p(2, 0) * q(2, 0) - p(3, 0) * q(3, 0);
+    // quat(1, 0) = p(0, 0) * q(1, 0) + p(1, 0) * q(0, 0) + p(2, 0) * q(3, 0) - p(3, 0) * q(2, 0);
+    // quat(2, 0) = p(0, 0) * q(2, 0)  - p(1, 0) * q(3, 0) + p(2, 0) * q(1, 0) + p(3, 0) * q(1, 0);
+    // quat(3, 0) = p(0, 0) * q(3, 0) + p(1, 0) * q(2, 0) - p(2, 0) * q(1, 0) + p(3, 0) * q(3, 0);
 
-    // Should we always normalize here?
+    quat(0, 0) = q(0, 0) * p(0, 0) - q(1, 0) * p(1, 0) - q(2, 0) * p(2, 0) - q(3, 0) * p(3, 0);
+    quat(1, 0) = q(0, 0) * p(1, 0) + q(1, 0) * p(0, 0) - q(2, 0) * p(3, 0) + q(3, 0) * p(2, 0);
+    quat(2, 0) = q(0, 0) * p(2, 0) + q(1, 0) * p(3, 0) + q(2, 0) * p(0, 0) - q(3, 0) * p(1, 0);
+    quat(3, 0) = q(0, 0) * p(3, 0) - q(1, 0) * p(2, 0) + q(2, 0) * p(1, 0) + q(3, 0) * p(0, 0);
+
+    // quat(0, 0) = p(0, 0) * q(0, 0) - p(1, 0) * q(1, 0) - p(2, 0) * q(2, 0) - p(3, 0) * q(3, 0);
+    // quat(1, 0) = p(0, 0) * q(1, 0) + p(1, 0) * q(0, 0) - p(2, 0) * q(3, 0) + p(3, 0) * q(2, 0);
+    // quat(2, 0) = p(0, 0) * q(2, 0) + p(1, 0) * q(3, 0) + p(2, 0) * q(0, 0) - p(3, 0) * q(1, 0);
+    // quat(3, 0) = p(0, 0) * q(3, 0) - p(1, 0) * q(2, 0) + p(2, 0) * q(1, 0) + p(3, 0) * q(0, 0);
+
     return quat;
 
 }
-/*replacing ts for now
-BLA::Matrix<4, 1> QuaternionUtils::quatMultiply(const BLA::Matrix<4, 1> &p,
-                                                const BLA::Matrix<4, 1> &q) {
-    BLA::Matrix<4, 1> r;
-
-    float pw = p(0), px = p(1), py = p(2), pz = p(3);
-    float qw = q(0), qx = q(1), qy = q(2), qz = q(3);
-
-    r(0) = pw*qw - px*qx - py*qy - pz*qz;
-    r(1) = pw*qx + px*qw + py*qz - pz*qy;
-    r(2) = pw*qy - px*qz + py*qw + pz*qx;
-    r(3) = pw*qz + px*qy - py*qx + pz*qw;
-
-    return r;
-}
-*/
-// Note: Not super high precision like I want, however unlikely to convert this way
-BLA::Matrix<3, 1> QuaternionUtils::lla2ecef(const BLA::Matrix<3, 1> &lla) {
-    float pi = 3.141592;
-    float lat_rad = lla(0) * pi / 180.0;
-    float lon_rad = lla(1) * pi / 180.0;
-    
-    float a = 6378.0 * 1000.0;
-    float b = 6357.0 * 1000.0;
-
-    float e = std::sqrt(1.0 - (std::pow(b, 2) / std::pow(a, 2)));
-
-    float N = a / std::sqrt(1.0 - std::pow(e, 2) * std::pow(sin(lat_rad), 2));
-
-    float x = (N + lla(2)) * cos(lat_rad) * cos(lon_rad);
-    float y = (N + lla(2)) * cos(lat_rad) * sin(lon_rad);
-    float z = ((1 - std::pow(e, 2)) * N + lla(2)) * sin(lat_rad);
-
-    BLA::Matrix<3, 1> ecef = {x, y, z};
-
-    return ecef;
 
 
-}
-
-// TODO test again
 BLA::Matrix<3, 3> QuaternionUtils::dcm_ned2ecef(const BLA::Matrix<3, 1> &lla) {
     BLA::Matrix<3, 3> R_ET = {
         -1.0f * sind(lla(0)) * cosd(lla(1)), -1.0f * sind(lla(1)), -1.0f * cosd(lla(0)) * cosd(lla(1)),
@@ -234,21 +165,21 @@ BLA::Matrix<3, 3> QuaternionUtils::dcm_ned2ecef(const BLA::Matrix<3, 1> &lla) {
     return R_ET;
 }
 
-// TODO one day test
+
 BLA::Matrix<3, 1> QuaternionUtils::ecef2nedVec(const BLA::Matrix<3, 1> &ecef_meas, const BLA::Matrix<3, 1> &launch_ecef, const BLA::Matrix<3, 3> &R_ET) {
     return ~R_ET * (ecef_meas - launch_ecef);
 
 }
 
-// TODO test
+
 BLA::Matrix<3, 1> QuaternionUtils::ned2ecefVec(const BLA::Matrix<3, 1> &ned_meas, const BLA::Matrix<3, 1> &launch_ecef, const BLA::Matrix<3, 3> &R_ET) {
     return R_ET * ned_meas + launch_ecef;
 }
 
-// TODO test
-BLA::Matrix<3, 1> quat2RPY(const BLA::Matrix<4, 1> &p) {
+
+BLA::Matrix<3, 1> QuaternionUtils::quat2RPY(const BLA::Matrix<4, 1> &p) {
     // Not matlab, but from https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-    // XYZ RPY
+    // XYZ RPY but converted for ZYX order. TODO eventually rewrite to be more efficient
     BLA::Matrix<3, 1> RPY = {0, 0, 0};
 
     // roll (x-axis rotation)
@@ -269,7 +200,7 @@ BLA::Matrix<3, 1> quat2RPY(const BLA::Matrix<4, 1> &p) {
     return RPY;
 }
 
-// Works
+
 BLA::Matrix<4, 1> QuaternionUtils::quatConjugate(const BLA::Matrix<4, 1> &p){
     BLA::Matrix<4, 1> quat;
     quat(0, 0) = p(0);
@@ -280,26 +211,30 @@ BLA::Matrix<4, 1> QuaternionUtils::quatConjugate(const BLA::Matrix<4, 1> &p){
     return quat;
 }
 
-// TODO test
+
 BLA::Matrix<3, 1> QuaternionUtils::qRot(const BLA::Matrix<4, 1> &q, BLA::Matrix<3, 1> vec) {
     return QuaternionUtils::quat2DCM(q) * vec;
 }
 
-// TODO test when actually implement grav world model
+BLA::Matrix<3, 1> QuaternionUtils::qInvRot(const BLA::Matrix<4, 1> &q, BLA::Matrix<3, 1> vec) {
+    return QuaternionUtils::quat2DCMInv(q) * vec;
+}
+
+
 BLA::Matrix<3, 1> QuaternionUtils::g_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef) {
     // TODO one day put in the world model and take in position
     BLA::Matrix<3, 1> grav_ned = {0, 0, 9.8};
     return dcm_ned2ecef * grav_ned;
 }
 
-// TODO test when actually implement mag world model
+
 BLA::Matrix<3, 1> QuaternionUtils::m_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef) {
     // TODO one day put in the world model and take in position. School vals for now
     BLA::Matrix<3, 1> mag_ned = {19.983111, -4.8716, 46.9986145};
     return dcm_ned2ecef * mag_ned;
 }
 
-// TODO test when actually implement grav world model
+
 BLA::Matrix<3, 1> QuaternionUtils::normal_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef) {
     // TODO one day put in the world model. See g_i notes
     BLA::Matrix<3, 1> normal_ned = {0, 0, -9.8};
@@ -309,7 +244,7 @@ BLA::Matrix<3, 1> QuaternionUtils::normal_i_ecef(const BLA::Matrix<3, 3> dcm_ned
 
 BLA::Matrix<3, 3> QuaternionUtils::vecs2mat(const BLA::Matrix<3, 1> v1, const BLA::Matrix<3, 1> v2, const BLA::Matrix<3, 1> v3) {
     // TODO eventually replace with just using hstack
-    BLA::Matrix<3, 3> ret = {v1(0, 0), v2(0), v3(0, 0),
+    BLA::Matrix<3, 3> ret = {v1(0, 0), v2(0, 0), v3(0, 0),
                             v1(1, 0), v2(1, 0), v3(1, 0),
                             v1(2, 0), v2(2, 0), v3(2, 0)};
 
@@ -317,13 +252,12 @@ BLA::Matrix<3, 3> QuaternionUtils::vecs2mat(const BLA::Matrix<3, 1> v1, const BL
 }
 
 
-// TODO fix
-BLA::Matrix<4, 1> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i) {
+BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const BLA::Matrix<3, 1> v2_b, const BLA::Matrix<3, 1> v1_i, const BLA::Matrix<3, 1> v2_i) {
     // 1 is important, 2 is secondary
     BLA::Matrix<3, 1> v1_b_norm = v1_b / BLA::Norm(v1_b);
     BLA::Matrix<3, 1> v2_b_norm = v2_b / BLA::Norm(v2_b);
     BLA::Matrix<3, 1> v1_i_norm = v1_i / BLA::Norm(v1_i);
-    BLA::Matrix<3, 1> v2_i_norm = v2_b / BLA::Norm(v2_i);
+    BLA::Matrix<3, 1> v2_i_norm = v2_i / BLA::Norm(v2_i);
 
     // Inertial
     BLA::Matrix<3, 1> q_i = v1_i_norm;
@@ -339,138 +273,85 @@ BLA::Matrix<4, 1> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
     BLA::Matrix<3, 1> s_b = BLA::CrossProduct(q_b, r_b);
 
     BLA::Matrix<3, 3> M_b = vecs2mat(q_b, r_b, s_b);
+    BLA::Matrix<3, 3> M_b_t = ~M_b;
 
-    BLA::Matrix<3, 3> R_EB = M_i * ~M_b;
+    BLA::Matrix<3, 3> R_EB = M_i * M_b_t;
 
-    return dcm2quat(R_EB);
-
-}
-
-BLA::Matrix<4, 1> esoq2_EB(const BLA::Matrix<3, 4> v_b, const BLA::Matrix<3, 4> v_i) {
-    // Certifiable optimality, speed (microprocessor wise), determinism, and robustness to outliers
-    BLA::Matrix<4, 1> q_EB = {1, 0, 0, 0};
-    return q_EB;
-}
-
-// TODO test
-BLA::Matrix<3,1> QuaternionUtils::lla2ecef2(BLA::Matrix<3,1> lla) {
-    float pi = 3.141592653589; // TODO move this somewhere better (idk c++)
-    float a = 6378137.0;                // WGS-84 semi-major axis
-    float f = 1.0 / 298.257223563;      // flattening
-    float e2 = f * (2.0f - f);             // eccentricity squared
-
-    float lat = lla(0) * pi / 180.0; // Convert to radians 
-    float lon = lla(1) * pi / 180.0; // Convert to radians 
-    float alt = lla(2); 
-
-    // Convert reference lla to ecef first 
-    float N = a / std::sqrt(1 - e2 * std::pow(std::sin(lat), 2));
-
-    float x = (N + alt) * std::cos(lat) * std::cos(lon);
-    float y = (N + alt) * std::cos(lat) * std::sin(lon);
-    float z = ((1 - e2) * N + alt) * std::sin(lat);
-
-    BLA::Matrix<3,1> ecef_coords = {x,y,z}; 
-
-    return ecef_coords; 
+    return R_EB;
 
 }
 
-// TODO test
+// CHATGPT BABY LESSSS GOOOOOOOOO. I'm not tryna translate ts myself. Thanks Nic for sending: https://danceswithcode.net/engineeringnotes/geodetic_to_ecef/geodetic_to_ecef.html
+BLA::Matrix<3,1> QuaternionUtils::lla2ecef(BLA::Matrix<3,1> lla) {
+    const double a = 6378137.0;
+    const double e2 = 6.6943799901377997e-3;
+    double lat = lla(0);
+    double lon = lla(1);
+    double alt = lla(2);
+    double n = a / std::sqrt(1.0f - e2 * sind(lat) * sind(lat));
+    BLA::Matrix<3,1> ecef;
+    ecef(0) = (n + alt) * cosd(lat) * cosd(lon);
+    ecef(1) = (n + alt) * cosd(lat) * sind(lon);
+    ecef(2) = (n * (1 - e2) + alt) * sind(lat);
+    return ecef;
+}
+
+// Chat baby lessssgoooooo
 BLA::Matrix<3, 1> QuaternionUtils::ecef2lla(BLA::Matrix<3, 1> ecef) {
-    // Follows this kid idk if right, gotta test, but I'm not writing this bs from scratch
-    // I think this is's impl not super precise, but not that deep (I think). LLA is stupid
-    // https://github.com/kvenkman/ecef2lla/blob/master/ecef2lla.py
+    const double a = 6378137.0;
+    const double e2 = 6.6943799901377997e-3;
+    const double a1 = 4.2697672707157535e+4;
+    const double a2 = 1.8230912546075455e+9;
+    const double a3 = 1.4291722289812413e+2;
+    const double a4 = 4.5577281365188637e+9;
+    const double a5 = 4.2840589930055659e+4;
+    const double a6 = 9.9330562000986220e-1;
+    double x = ecef(0);
+    double y = ecef(1);
+    double z = ecef(2);
+    double zp = std::abs(z);
+    double w2 = x * x + y * y;
+    double w = std::sqrt(w2);
+    double r2 = w2 + z * z;
+    double r = std::sqrt(r2);
+    BLA::Matrix<3, 1> lla;
+    lla(1) = std::atan2(y, x);
+    double s2 = z * z / r2;
+    double c2 = w2 / r2;
+    double u = a2 / r;
+    double v = a3 - a4 / r;
+    double s, c, ss;
+    if (c2 > 0.3) {
+        s = (zp / r) * (1.0 + c2 * (a1 + u + s2 * v) / r);
+        lla(0) = std::asin(s);
+        ss = s * s;
+        c = std::sqrt(1.0 - ss);
+    } else {
+        c = (w / r) * (1.0 - s2 * (a5 - u - c2 * v) / r);
+        lla(0) = std::acos(c);
+        ss = 1.0 - c * c;
+        s = std::sqrt(ss);
+    }
+    double g = 1.0 - e2 * ss;
+    double rg = a / std::sqrt(g);
+    double rf = a6 * rg;
+    u = w - rg * c;
+    v = zp - rf * s;
+    double f = c * u + s * v;
+    double m = c * v - s * u;
+    double p = m / (rf / g + f);
+    lla(0) += p;
+    lla(2) = f + m * p / 2.0;
+    if (z < 0.0) {
+        lla(0) *= -1.0;
+    }
 
-    float pi = 3.141592653589;
-	float a = 6378137.0f;
-	float a_sq = a * a;
-	float e = 8.181919084261345e-2f;
-	float e_sq = 6.69437999014e-3f;
-
-	float f = 1.0f/298.257223563;
-	float b = a*(1.0-f);
-
-    float r = std::sqrt(ecef(0) * ecef(0) + ecef(1) * ecef(1));
-    float ep_sq = (a * a - b * b) / (b * b);
-    float ee = (a * a - b * b);
-    f = (54 * b * b) * (ecef(2) * ecef(2));
-	float g = r * r + (1 - e_sq) * (ecef(2) * ecef(2)) - e_sq * ee * 2.0f;
-    float c = (e_sq * e_sq) * f * r * r / (g * g * g);
-    float s = std::pow((1.0 + c + std::sqrt(c * c + 2 * c)), (1.0f / 3.0f));
-    float p = f / (3.0f * (g * g) * std::pow(s + (1.0 / s) + 1.0, 2.0f));
-	float q = std::sqrt(1.0f + 2.0f * p * std::pow(e_sq, 2.0f));
-	float r_0 = -1.0f * (p * e_sq * r) / (1.0 + q) + std::sqrt(0.5f * std::pow(a, 2) * (1.0f + (1.0f / q)) - 0.5f * p * std::pow(r, 2));
-
-    float u = std::sqrt(std::pow(r - e_sq * r_0, 2) + std::pow(ecef(2), 2));
-    float v = std::sqrt(std::pow(r - e_sq * r_0, 2) + (1.0f - e_sq) * std::pow(ecef(2), 2));
-    float z_0 = std::pow(b, 2) * ecef(2) / (a * v);
-    float h = u * (1.0f - std::pow(b, 2) / (a * v));
-    float phi = std::atan((ecef(2) + ep_sq * z_0) / r);
-    float lambd = std::atan2(ecef(1), ecef(0));
-
-    BLA::Matrix<3, 1> lla = {phi*180.0f/pi, lambd*180.0/pi, h};
-	return lla;
+    lla(0) = lla(0) * (180.0 / M_PI);
+    lla(1) = lla(1) * (180.0 / M_PI);
+    return lla;
 }
 
-// Do this if above is inaccurate
-/*
-def ecef_to_lla(ecef):
-    '''Convert ECEF (meters) coordinates to geodetic coordinates (degrees and meters).
-    It would be good to check out the OG source and make sure this is appropriate.
-    Uses those parameters right above here.
 
-    Sourced from https://possiblywrong.wordpress.com/2014/02/14/when-approximate-is-better-than-exact/
-    Originally from
-    Olson, D. K., Converting Earth-Centered, Earth-Fixed Coordinates to
-    Geodetic Coordinates, IEEE Transactions on Aerospace and Electronic
-    Systems, 32 (1996) 473-476.
-
-    Parameters
-    ----------
-    ecef : numpy.ndarray
-        Position of satellite in ECEF frame.
-
-    Returns
-    -------
-    list
-        Latitude, longitude, and vertical distance above geode along surface normal.
-    '''
-    w = math.sqrt(ecef[0] * ecef[0] + ecef[1] * ecef[1])
-    z = ecef[2]
-    zp = abs(z)
-    w2 = w * w
-    r2 = z * z + w2
-    r  = math.sqrt(r2)
-    s2 = z * z / r2
-    c2 = w2 / r2
-    u = a2 / r
-    v = a3 - a4 / r
-    if c2 > 0.3:
-        s = (zp / r) * (1 + c2 * (a1 + u + s2 * v) / r)
-        lat = math.asin(s)
-        ss = s * s
-        c = math.sqrt(1 - ss)
-    else:
-        c = (w / r) * (1 - s2 * (a5 - u - c2 * v) / r)
-        lat = math.acos(c)
-        ss = 1 - c * c
-        s = math.sqrt(ss)
-    g = 1 - e2 * ss
-    rg = a / math.sqrt(g)
-    rf = a6 * rg
-    u = w - rg * c
-    v = zp - rf * s
-    f = c * u + s * v
-    m = c * v - s * u
-    p = m / (rf / g + f)
-    lat = lat + p
-    if z < 0:
-        lat = -lat
-    return (np.degrees(lat), np.degrees(math.atan2(ecef[1], ecef[0])), f + m * p / 2)
-*/
-
-// TODO test
 BLA::Matrix<4, 1> QuaternionUtils::normalizeQuaternion(BLA::Matrix<4, 1> quat) {
     BLA::Matrix<4, 1> new_quat = quat / BLA::Norm(quat);
     return new_quat;
