@@ -734,7 +734,7 @@ bool SplitStateEstimator::shouldKill(BLA::Matrix<3, 1> angular_vels, float angle
     BLA::Matrix<3, 1> gyro_prev = get_gyro_prev();
 
     for (int i = 0; i < 3; i++) {
-        if std.abs(gyro_prev(i, 0)) > angular_vels(i, 0) {
+        if (std::abs(gyro_prev(i, 0)) > angular_vels(i, 0)) {
             return true;
         }
     }

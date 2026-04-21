@@ -395,9 +395,8 @@ BLA::Matrix<4, 1> QuaternionUtils::qDot(const BLA::Matrix<4, 1> &p, const BLA::M
     return ret;
 }
 
-BLA::Matrix<3, 1> QuaternionUtils::vecDot(const BLA::Matrix<3, 1> &v1, const BLA::Matrix<3, 1> &v2) {
-    BLA::Matrix<3, 1> ret = {v1(0, 0) * v2(0, 0), v1(0, 0) * v2(1, 0), v1(2, 0) * v2(3, 0)};
-    return ret;
+float QuaternionUtils::vecDot(const BLA::Matrix<3, 1> &v1, const BLA::Matrix<3, 1> &v2) {
+    return v1(0, 0) * v2(0, 0) + v1(0, 0) * v2(1, 0) + v1(2, 0) * v2(3, 0);
 }
 
 
