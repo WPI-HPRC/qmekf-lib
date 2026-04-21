@@ -125,7 +125,10 @@ class SplitStateEstimator {
     template<int rows>
     BLA::Matrix<10, 1> ekfPVCalcErrorInject(BLA::Matrix<rows, 1> &sens_reading, BLA::Matrix<rows, 10> H, BLA::Matrix<rows, 1> h, BLA::Matrix<rows, rows> R);
     
-
+    // Sadness
+    // Angular vel in radians on each axis
+    // Angle from vert in radians of just pitch and yaw
+    bool shouldKill(BLA::Matrix<3, 1> angular_vels, float angle_from_vert);
 
   private:
     // School stats
@@ -133,6 +136,7 @@ class SplitStateEstimator {
     BLA::Matrix<3, 3> dcmned2ecef = launch_dcmned2ecef;
     BLA::Matrix<3, 1> launch_ecef = {1475354.0f, -4490428.0f, 4268181.0f};
     BLA::Matrix<3, 1> launch_lla = {42.27405, -71.81174, 10};
+    BLA::Matrix<4, 1> nominal_rocket_ned_orientation = {1.414213562, 0, 1.414213562, 0}; // Just aligning x with up, roll axis ignored. value is sqrt(2) / 2
 
 
     // TODO replace these values with actual values someday

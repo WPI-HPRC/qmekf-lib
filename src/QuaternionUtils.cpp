@@ -357,6 +357,11 @@ BLA::Matrix<4, 1> QuaternionUtils::normalizeQuaternion(BLA::Matrix<4, 1> quat) {
     return new_quat;
 }
 
+BLA::Matrix<3, 1> QuaternionUtils::normalizeVector(BLA::Matrix<3, 1> vec) {
+    BLA::Matrix<3, 1> new_vec = vec / BLA::Norm(vec);
+    return new_vec;
+}
+
 float QuaternionUtils::cosd(float degs) {
     float pi = 3.141592653589;
     return cos(degs * (pi / 180.0f));
@@ -385,6 +390,15 @@ BLA::Matrix<3, 1> QuaternionUtils::fuse_measurements(const BLA::Matrix<3, 2> &A,
     return output_val;
 }
 
+BLA::Matrix<4, 1> QuaternionUtils::qDot(const BLA::Matrix<4, 1> &p, const BLA::Matrix<4, 1> &q) {
+    BLA::Matrix<4, 1> ret = {p(0, 0) * q(0, 0), p(0, 0) * q(1, 0), p(2, 0) * q(3, 0), p(3, 0) * q(3, 0)};
+    return ret;
+}
+
+BLA::Matrix<3, 1> QuaternionUtils::vecDot(const BLA::Matrix<3, 1> &v1, const BLA::Matrix<3, 1> &v2) {
+    BLA::Matrix<3, 1> ret = {v1(0, 0) * v2(0, 0), v1(0, 0) * v2(1, 0), v1(2, 0) * v2(3, 0)};
+    return ret;
+}
 
 
 

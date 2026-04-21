@@ -728,6 +728,44 @@ BLA::Matrix<10, 1> SplitStateEstimator::ekfPVCalcErrorInject(BLA::Matrix<rows, 1
     return pv_x;
 }
 
+bool SplitStateEstimator::shouldKill(BLA::Matrix<3, 1> angular_vels, float angle_from_vert) {
+    // Two parts: 1. Angular vel too great 2. Deviance from vertical is too high
+
+    BLA::Matrix<3, 1> gyro_prev = get_gyro_prev();
+
+    for (int i = 0; i < 3; i++) {
+        if std.abs(gyro_prev(i, 0)) > angular_vels(i, 0) {
+            return true;
+        }
+    }
+
+    BLA::Matrix<4, 1> orientation = get_quat_ned();
+    BLA::Matrix<3, 1> roll_axis = {1, 0, 0};
+    BLA::Matrix<4, 1> nominal = nominal_rocket_ned_orientation;
+    BLA::Matrix<3, 1> est_x = qRot(orientation, roll_axis);
+    BLA::Matrix<3, 1> expected_x = qRot(nominal, roll_axis);
+    // Angle between two vectors formula
+    float theta = std::acos(vecDot(est_x, expected_x));
+
+    // The axis for which it is off. Good to have, but not used here
+    BLA::Matrix<3, 1> axis = BLA::CrossProduct(roll_axis, est_x);
+    axis = normalizeVector(axis);
+
+    BLA::Matrix<12, 1> P = getAttPDiag();
+    BLA::Matrix<3, 1> inds = {0, 1, 2};
+    BLA::Matrix<3, 1> P_body = get_dcmned2ecef() * extractSub(P, inds); // For our MEKF, covariance defined in inertial frame, kinda L
+    float P_added_theta = std::hypotf(P_body(1, 0), P_body(2, 0));
+    // Linearized. Kinda works. Should do hypot or max, or other distance metric, idk
+    float sigma = 1.0f; // idk, tbd
+    float total_theta = theta + sigma * P_added_theta;
+
+    if (total_theta > angle_from_vert) {
+        return true;
+    }
+
+    return false;
+}
+
 
 // BLA::Matrix<20, 1> SplitStateEstimator::runBaroUpdate(BLA::Matrix<1, 1> baro, float curr_time) {
 
