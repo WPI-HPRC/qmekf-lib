@@ -329,16 +329,9 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
 
     att_P = att_P + Q_d;
 
-    printMatHighDef(att_P);
-
-    
-    lastCalcTimes(2, 0) = curr_time;
-    lastCalcTimes(3, 0) = curr_time;
+    //printMatHighDef(att_P);
 
     return att_P;
-
-
-
 /*
     // Process noise
     BLA::Matrix<19, 19> Q_d;
