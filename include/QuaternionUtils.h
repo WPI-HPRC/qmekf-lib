@@ -93,7 +93,7 @@ namespace QuaternionUtils {
 
     BLA::Matrix<4, 1> qDot(const BLA::Matrix<4, 1> &p, const BLA::Matrix<4, 1> &q);
 
-    BLA::Matrix<3, 1> vecDot(const BLA::Matrix<3, 1> &v1, const BLA::Matrix<3, 1> &v2);
+    float vecDot(const BLA::Matrix<3, 1> &v1, const BLA::Matrix<3, 1> &v2);
 
     template <int N>
     BLA::Matrix<N, N> pinv(const BLA::Matrix<N, N> &A) {
