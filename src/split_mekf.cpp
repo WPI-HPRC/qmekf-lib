@@ -462,6 +462,22 @@ BLA::Matrix<10, 10> SplitStateEstimator::PVekfPredict(float curr_time) {
     return pv_P;
 }
 
+template<int R, int C>
+void printMatrix(const BLA::Matrix<R, C>& M, const char* name = "") {
+    if (name && name[0] != '\0') {
+        DBG.println(name);
+    }
+
+    for (int i = 0; i < R; i++) {
+        DBG.print("[ ");
+        for (int j = 0; j < C; j++) {
+            DBG.print(M(i, j), 6);  // 6 decimal places
+            if (j < C - 1) DBG.print(", ");
+        }
+        DBG.println(" ]");
+    }
+    DBG.println();
+}
 
 BLA::Matrix<13, 1> SplitStateEstimator::runAccelUpdate(BLA::Matrix<3, 1> a_b, float curr_time) {
 
@@ -606,9 +622,9 @@ BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b,
     BLA::Matrix<6, 12> H_accel_mag;
     H_accel_mag.Fill(0);
     H_accel_mag.Submatrix<3, 3>(0, 0) = skewSymmetric(h_accel);
-    H_accel_mag.Submatrix<3, 3>(0, SplitMEKFInds::ab_x - 1) = I_3;
-    H_accel_mag.Submatrix<3, 3>(3, 6) = skewSymmetric(h_mag);
-    H_accel_mag.Submatrix<3, 3>(3, SplitMEKFInds::mb_x - 1) = I_3;
+    // H_accel_mag.Submatrix<3, 3>(0, SplitMEKFInds::ab_x - 1) = I_3;
+    H_accel_mag.Submatrix<3, 3>(3, 0) = skewSymmetric(h_mag);
+    // H_accel_mag.Submatrix<3, 3>(3, SplitMEKFInds::mb_x - 1) = I_3;
 
     BLA::Matrix<6, 6> R;
     R.Fill(0);
@@ -625,6 +641,8 @@ BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b,
 
     lastCalcTimes(2) = curr_time;
     lastCalcTimes(3) = curr_time;
+
+    printMatrix(H_accel_mag, "H_accel_mag:");
 
     return ekfAttCalcErrorInject(unbiased_sens, H_accel_mag, h_accel_mag, R);
 }
