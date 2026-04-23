@@ -104,6 +104,10 @@ BLA::Matrix<3, 1> SplitStateEstimator::get_pos_ned() {
     return ~get_dcmned2ecef() * (get_pos_ecef() - launch_ecef);
 }
 
+BLA::Matrix<3, 1> SplitStateEstimator::get_gyro_bias() {
+    return extractSub(att_x, SplitMEKFInds::gyroBias);
+}
+
 BLA::Matrix<3, 1> SplitStateEstimator::get_gyro_prev() {
     return gyro_prev;
 }
@@ -306,7 +310,7 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
 
     BLA::Matrix<3, 3> gyro_var_diag = toDiag(gyro_var);
 
-    BLA::Matrix<3, 1> gyro_bias_var = {0, 0, 0};
+    BLA::Matrix<3, 1> gyro_bias_var = {0.002, 0.002, 0.002};
     BLA::Matrix<3, 3> gyro_bias_var_diag = toDiag(gyro_bias_var);
 
     BLA::Matrix<3, 1> acc_bias_var = {0, 0, 0};
@@ -324,7 +328,7 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     // BLA::Matrix<3, 1> mag_bias_var = {1e-4f, 1e-4f, 1e-4f};
     // BLA::Matrix<3, 3> mag_bias_var_diag = toDiag(mag_bias_var);
 
-    SerialUSB.print("att_dt: ");
+    // SerialUSB.print("att_dt: ");
     SerialUSB.println(att_dt);
 
     Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, SplitMEKFInds::q_w) = gyro_var_diag * att_dt + gyro_bias_var_diag * (float) (std::pow(att_dt, 3) / 3.0);
@@ -333,14 +337,17 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     Q_d.Submatrix<3, 3>(SplitMEKFInds::gb_x - 1, SplitMEKFInds::gb_x - 1) = -1.0f * gyro_bias_var_diag * (float) (std::pow(att_dt, 2) / 2.0);
     Q_d.Submatrix<3, 3>(SplitMEKFInds::ab_x - 1, SplitMEKFInds::ab_x - 1) = acc_bias_var_diag * att_dt;
     Q_d.Submatrix<3, 3>(SplitMEKFInds::mb_x - 1, SplitMEKFInds::mb_x - 1) = mag_bias_var_diag * att_dt;
-    SerialUSB.println("att_P: ");
+    // SerialUSB.println("att_P: ");
     //printMatHighDef(Q_d);
 
     att_P = att_P + Q_d;
 
-    //printMatHighDef(att_P);
+    // printMatHighDef(att_P);
 
     return att_P;
+
+    // lastCalcTimes(2) = curr_time;
+    // lastCalcTimes(3) = curr_time;
 /*
     // Process noise
     BLA::Matrix<19, 19> Q_d;
@@ -410,6 +417,7 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     DBG.print(", ");
     DBG.println(P(2, 2), 7);
     */
+
 }
 
 BLA::Matrix<10, 10> SplitStateEstimator::PVekfPredict(float curr_time) {

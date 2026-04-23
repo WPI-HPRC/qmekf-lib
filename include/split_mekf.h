@@ -78,6 +78,8 @@ class SplitStateEstimator {
     BLA::Matrix<3,1> get_pos_ecef();
     BLA::Matrix<3,1> get_pos_ned();
 
+    BLA::Matrix<3, 1> get_gyro_bias();
+
     BLA::Matrix<3, 1> get_gyro_prev();
     BLA::Matrix<3, 1> get_accel_prev();
     BLA::Matrix<3,1> get_mag_prev();
@@ -142,7 +144,7 @@ class SplitStateEstimator {
     // TODO replace these values with actual values someday
     // Quat, gyroBias, accelBias, magBias
     BLA::Matrix<13, 1> att_x = {1, 0, 0, 0,
-                                  0, 0, 0,
+                                  -0.0088111, 0.00945, 0.0006399,
                                   0, 0, 0,
                                   0, 0, 0};
 
