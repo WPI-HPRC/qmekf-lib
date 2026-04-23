@@ -607,17 +607,26 @@ BLA::Matrix<13, 1> SplitStateEstimator::runMagUpdate(BLA::Matrix<3, 1> m_b, floa
 BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b, BLA::Matrix<3, 1> m_b, float curr_time) {
     BLA::Matrix<3, 1> unbiased_accel = a_b - extractSub(att_x, SplitMEKFInds::accelBias);
     BLA::Matrix<3, 1> unbiased_mag = m_b - extractSub(att_x, SplitMEKFInds::magBias);
+    float u_a_n = BLA::Norm(a_b);
+    a_b = (a_b / u_a_n);
+    float u_m_n = BLA::Norm(m_b);
+    m_b = (m_b / u_m_n);
     BLA::Matrix<6, 1> unbiased_sens = vstack(a_b, m_b);
-    // float u_a_n = BLA::Norm(unbiased_accel);
-    // unbiased_accel = (unbiased_accel / u_a_n);
     BLA::Matrix<4,1> q = extractSub(att_x, SplitMEKFInds::quat);
 
-    BLA::Matrix<3, 1> h_accel = quat2DCMInv(q) * normal_i_ecef(launch_dcmned2ecef);
-    BLA::Matrix<3, 1> h_mag = quat2DCMInv(q) * m_i_ecef(launch_dcmned2ecef);
+
+    float u_n_n = BLA::Norm(normal_i_ecef(launch_dcmned2ecef));
+    BLA::Matrix<3, 1> normal_i = (normal_i_ecef(launch_dcmned2ecef) / u_n_n);
+    float u_mag_n = BLA::Norm(m_i_ecef(launch_dcmned2ecef));
+    BLA::Matrix<3, 1> m_i = (m_i_ecef(launch_dcmned2ecef) / u_mag_n);
+
+    BLA::Matrix<3, 1> h_accel = quat2DCMInv(q) * normal_i;
+    BLA::Matrix<3, 1> h_mag = quat2DCMInv(q) * m_i;
     BLA::Matrix<6, 1> h_accel_mag = vstack(h_accel, h_mag);
     // float h_a_n = BLA::Norm(h_accel);
     // h_accel = h_accel / h_a_n;
-
+    //printMatrix(h_accel_mag, "h_accel_mag:");
+    //printMatrix(unbiased_sens, "unbiased_sens:");
 
     BLA::Matrix<6, 12> H_accel_mag;
     H_accel_mag.Fill(0);
@@ -629,8 +638,8 @@ BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b,
     BLA::Matrix<6, 6> R;
     R.Fill(0);
     //tune ts
-    float sigma_mag = 0.01f;
-    float sigma_accel = 0.01f;
+    float sigma_mag = 0.5f;
+    float sigma_accel = 0.1f;
     //why wont diag wrk ugh
     R(0, 0) = sigma_accel * sigma_accel;
     R(1, 1) = sigma_accel * sigma_accel;
@@ -642,10 +651,11 @@ BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b,
     lastCalcTimes(2) = curr_time;
     lastCalcTimes(3) = curr_time;
 
-    printMatrix(H_accel_mag, "H_accel_mag:");
+    //printMatrix(H_accel_mag, "H_accel_mag:");
 
     return ekfAttCalcErrorInject(unbiased_sens, H_accel_mag, h_accel_mag, R);
 }
+
 
 BLA::Matrix<10, 1> SplitStateEstimator::runGPSPVUpdate(BLA::Matrix<3, 1> gpsVel, BLA::Matrix<3, 1> gpsPos, float curr_time) {
     BLA::Matrix<6, 1> combined_sens = vstack(gpsVel, gpsPos);
