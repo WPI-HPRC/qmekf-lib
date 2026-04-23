@@ -580,20 +580,23 @@ BLA::Matrix<13, 1> SplitStateEstimator::runMagUpdate(BLA::Matrix<3, 1> m_b, floa
     // unbiased_accel = (unbiased_accel / u_a_n);
     BLA::Matrix<4,1> q = extractSub(att_x, SplitMEKFInds::quat);
 
-    BLA::Matrix<3, 1> h_mag = quat2DCMInv(q) * m_i_ecef(launch_dcmned2ecef);
+    float u_m_n = BLA::Norm(m_b);
+    m_b = (m_b / u_m_n);
     // float h_a_n = BLA::Norm(h_accel);
     // h_accel = h_accel / h_a_n;
-
+    float u_mag_n = BLA::Norm(m_i_ecef(launch_dcmned2ecef));
+    BLA::Matrix<3, 1> m_i = (m_i_ecef(launch_dcmned2ecef) / u_mag_n);
+    BLA::Matrix<3, 1> h_mag = quat2DCMInv(q) * m_i;
 
     BLA::Matrix<3, 12> H_mag;
     H_mag.Fill(0);
     H_mag.Submatrix<3, 3>(0, 0) = skewSymmetric(h_mag);
-    H_mag.Submatrix<3, 3>(0, SplitMEKFInds::mb_x - 1) = I_3;
+    // H_mag.Submatrix<3, 3>(0, SplitMEKFInds::mb_x - 1) = I_3;
 
     BLA::Matrix<3, 3> R;
     R.Fill(0);
     //tune ts
-    float sigma_mag = 0.01f;
+    float sigma_mag = 0.5f;
     float sigma_n = sigma_mag;
     //why wont diag wrk ugh
     R(0, 0) = sigma_n * sigma_n;
@@ -601,7 +604,7 @@ BLA::Matrix<13, 1> SplitStateEstimator::runMagUpdate(BLA::Matrix<3, 1> m_b, floa
     R(2, 2) = sigma_n * sigma_n;
 
     lastCalcTimes(3) = curr_time;
-    return ekfAttCalcErrorInject(unbiased_mag, H_mag, h_mag, R);
+    return ekfAttCalcErrorInject(m_b, H_mag, h_mag, R);
 }
 
 BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b, BLA::Matrix<3, 1> m_b, float curr_time) {
