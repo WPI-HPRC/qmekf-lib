@@ -627,10 +627,10 @@ BLA::Matrix<13, 1> SplitStateEstimator::runMagUpdate(BLA::Matrix<3, 1> m_b, floa
 BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b, BLA::Matrix<3, 1> m_b, float curr_time) {
     BLA::Matrix<3, 1> unbiased_accel = a_b - extractSub(att_x, SplitMEKFInds::accelBias);
     BLA::Matrix<3, 1> unbiased_mag = m_b - extractSub(att_x, SplitMEKFInds::magBias);
-    float u_a_n = BLA::Norm(unbiased_accel);
-    a_b = (unbiased_accel / u_a_n);
-    float u_m_n = BLA::Norm(unbiased_mag);
-    m_b = (unbiased_mag / u_m_n);
+    float u_a_n = BLA::Norm(a_b);
+    a_b = (a_b / u_a_n);
+    float u_m_n = BLA::Norm(m_b);
+    m_b = (m_b / u_m_n);
     BLA::Matrix<6, 1> unbiased_sens = vstack(a_b, m_b);
     BLA::Matrix<4,1> q = extractSub(att_x, SplitMEKFInds::quat);
 
@@ -655,14 +655,14 @@ BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b,
     BLA::Matrix<6, 12> H_accel_mag;
     H_accel_mag.Fill(0);
     H_accel_mag.Submatrix<3, 3>(0, 0) = skewSymmetric(h_accel);
-    H_accel_mag.Submatrix<3, 3>(0, SplitMEKFInds::ab_x - 1) = I_3;
+    // H_accel_mag.Submatrix<3, 3>(0, SplitMEKFInds::ab_x - 1) = I_3;
     H_accel_mag.Submatrix<3, 3>(3, 0) = skewSymmetric(h_mag);
-    H_accel_mag.Submatrix<3, 3>(3, SplitMEKFInds::mb_x - 1) = I_3;
+    // H_accel_mag.Submatrix<3, 3>(3, SplitMEKFInds::mb_x - 1) = I_3;
 
     BLA::Matrix<6, 6> R;
     R.Fill(0);
     //tune ts
-    float sigma_mag = 1.0f;
+    float sigma_mag = 2.0f;
     float sigma_accel = 0.5f;
     //why wont diag wrk ugh
     R(0, 0) = sigma_accel * sigma_accel;
