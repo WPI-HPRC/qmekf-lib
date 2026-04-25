@@ -127,6 +127,9 @@ class SplitStateEstimator {
     template<int rows>
     BLA::Matrix<10, 1> ekfPVCalcErrorInject(BLA::Matrix<rows, 1> &sens_reading, BLA::Matrix<rows, 10> H, BLA::Matrix<rows, 1> h, BLA::Matrix<rows, rows> R);
     
+  double solveAltitude(double pressure);
+
+
     // Sadness
     // Angular vel in radians on each axis
     // Angle from vert in radians of just pitch and yaw
