@@ -775,14 +775,15 @@ BLA::Matrix<10, 1> SplitStateEstimator::ekfPVCalcErrorInject(BLA::Matrix<rows, 1
     return pv_x;
 }
 
-bool SplitStateEstimator::shouldKill(BLA::Matrix<3, 1> angular_vels, float angle_from_vert) {
+
+int SplitStateEstimator::shouldKill(BLA::Matrix<3, 1> angular_vels, float angle_from_vert) {
     // Two parts: 1. Angular vel too great 2. Deviance from vertical is too high
 
-    BLA::Matrix<3, 1> gyro_prev = get_gyro_prev();
+    BLA::Matrix<3, 1> gyro_avg_rates = computeAverageAngularRates();
 
     for (int i = 0; i < 3; i++) {
-        if (std::abs(gyro_prev(i, 0)) > angular_vels(i, 0)) {
-            return true;
+        if (std::abs(gyro_avg_rates(i, 0)) > angular_vels(i, 0)) {
+            return i + 1;
         }
     }
 
@@ -806,28 +807,53 @@ bool SplitStateEstimator::shouldKill(BLA::Matrix<3, 1> angular_vels, float angle
     float sigma = 1.0f; // idk, tbd
     float total_theta = theta + sigma * P_added_theta;
 
-    if (total_theta > angle_from_vert) {
-        return true;
-    }
+    // if (total_theta > angle_from_vert) {
+    //     return 0;
+    // }
 
-    return false;
+    return -1;
 }
 
 float SplitStateEstimator::solveAltitude(float pressure) {
-        // physical parameters for model
-        const float pb = 101325;  // [Pa] pressure at sea level
-        const float Tb = 288.15;  // [K] temperature at seal level
-        const float Lb = -0.0065; // [K/m] standard temperature lapse rate
-        const float hb = 0; // [m] height at bottom of atmospheric layer (sea level)
-        const float R = 8.31432;   // [N*m/mol*K] universal gas constant
-        const float g0 = 9.80665;  // [m/s^2] Earth standard gravity
-        const float M = 0.0289644; // [kg/mol] molar mass of Earth's air
+    // physical parameters for model
+    const float pb = 101325;  // [Pa] pressure at sea level
+    const float Tb = 288.15;  // [K] temperature at seal level
+    const float Lb = -0.0065; // [K/m] standard temperature lapse rate
+    const float hb = 0; // [m] height at bottom of atmospheric layer (sea level)
+    const float R = 8.31432;   // [N*m/mol*K] universal gas constant
+    const float g0 = 9.80665;  // [m/s^2] Earth standard gravity
+    const float M = 0.0289644; // [kg/mol] molar mass of Earth's air
 
-        float pressure_Pa = pressure * 100;
+    float pressure_Pa = pressure * 100;
 
-        return hb +
-               (Tb / Lb) * (pow((pressure_Pa / pb), (-R * Lb / (g0 * M))) - 1);
+    return hb +
+            (Tb / Lb) * (pow((pressure_Pa / pb), (-R * Lb / (g0 * M))) - 1);
+}
+
+BLA::Matrix<3, 1> SplitStateEstimator::computeAverageAngularRates() {
+    BLA::Matrix<3, 1> angular_rates = {0.0f, 0.0f, 0.0f};
+    if (r_buffer.isEmpty()) return angular_rates;
+
+    float r_sum = 0.0f;
+    for (int i = 0; i < r_buffer.size(); i++) {
+        r_sum += r_buffer[i];
     }
+    angular_rates(0, 0) = r_sum / r_buffer.size();
+
+    float p_sum = 0.0f;
+    for (int i = 0; i < p_buffer.size(); i++) {
+        p_sum += p_buffer[i];
+    }
+    angular_rates(1, 0) = p_sum / p_buffer.size();
+
+    float y_sum = 0.0f;
+    for (int i = 0; i < y_buffer.size(); i++) {
+        y_sum += y_buffer[i];
+    }
+    angular_rates(2, 0) = y_sum / y_buffer.size();
+
+    return angular_rates;
+}
 
 
 // BLA::Matrix<20, 1> SplitStateEstimator::runBaroUpdate(BLA::Matrix<1, 1> baro, float curr_time) {
