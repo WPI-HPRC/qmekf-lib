@@ -148,7 +148,7 @@ class SplitStateEstimator {
     // Quat, gyroBias, accelBias, magBias
     BLA::Matrix<13, 1> att_x = {1, 0, 0, 0,
                                   // 0, 0, 0,
-                                  -0.0090000, 0.0100, 0.0002399, 
+                                  -0.0093000, 0.01013, 0.00027399, 
                                   0, 0, 0,
                                   0, 0, 0};
 
