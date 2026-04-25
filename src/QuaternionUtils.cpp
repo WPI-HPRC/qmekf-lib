@@ -93,6 +93,8 @@ BLA::Matrix<4, 1> QuaternionUtils::dcm2quat(const BLA::Matrix<3, 3> &dcm) {
     q_sq(2, 0) = 0.25f * (1.0f - dcm_t(0, 0) - dcm_t(1, 1) + dcm_t(2, 2));
     q_sq(3, 0) = 0.25f * (1.0f + dcm_t(0, 0) + dcm_t(1, 1) + dcm_t(2, 2));
 
+    
+
     int max_ind = vecMaxInd(q_sq);
     BLA::Matrix<4, 1> q_ret;
 
@@ -259,6 +261,12 @@ BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
     BLA::Matrix<3, 1> v1_i_norm = v1_i / BLA::Norm(v1_i);
     BLA::Matrix<3, 1> v2_i_norm = v2_i / BLA::Norm(v2_i);
 
+    // SerialUSB.print(v1_b_norm);
+    // SerialUSB.print(v2_b_norm);
+    // SerialUSB.print(v1_i_norm);
+    // SerialUSB.println(v2_i_norm);
+
+
     // Inertial
     BLA::Matrix<3, 1> q_i = v1_i_norm;
     BLA::Matrix<3, 1> r_i = BLA::CrossProduct(v1_i_norm, v2_i_norm) / BLA::Norm(BLA::CrossProduct(v1_i_norm, v2_i_norm));
@@ -266,16 +274,27 @@ BLA::Matrix<3, 3> QuaternionUtils::triad_EB(const BLA::Matrix<3, 1> v1_b, const 
 
     BLA::Matrix<3, 3> M_i = vecs2mat(q_i, r_i, s_i);
 
+    // SerialUSB.print(r_i);
+    // SerialUSB.print(s_i);
+    // SerialUSB.println(M_i);
 
     // Body
     BLA::Matrix<3, 1> q_b = v1_b_norm;
     BLA::Matrix<3, 1> r_b = BLA::CrossProduct(v1_b_norm, v2_b_norm) / BLA::Norm(BLA::CrossProduct(v1_b_norm, v2_b_norm));
     BLA::Matrix<3, 1> s_b = BLA::CrossProduct(q_b, r_b);
 
+
     BLA::Matrix<3, 3> M_b = vecs2mat(q_b, r_b, s_b);
     BLA::Matrix<3, 3> M_b_t = ~M_b;
 
+    // SerialUSB.print(r_b);
+    // SerialUSB.print(s_b);
+    // SerialUSB.println(M_b);
+    // SerialUSB.println(M_b_t);
+
     BLA::Matrix<3, 3> R_EB = M_i * M_b_t;
+
+    // SerialUSB.println(R_EB);
 
     return R_EB;
 

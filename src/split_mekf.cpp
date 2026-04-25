@@ -187,7 +187,10 @@ BLA::Matrix<3, 1> SplitStateEstimator::reorient_lis(BLA::Matrix<3, 1> value) {
 void SplitStateEstimator::computeInitialOrientation(BLA::Matrix<3, 1> accel, BLA::Matrix<3, 1> mag, float curr_time) {
     BLA::Matrix<3, 3> orientation_mat = triad_EB(accel, mag, normal_i_ecef(get_dcmned2ecef()), m_i_ecef(get_dcmned2ecef()));
 
+
     setSub(att_x, SplitMEKFInds::quat, dcm2quat(orientation_mat));
+
+    // SerialUSB.println(dcm2quat(orientation_mat));
 
     lastCalcTimes(0, 0) = curr_time;
     lastCalcTimes(2, 0) = curr_time;
@@ -200,15 +203,13 @@ void SplitStateEstimator::computeInitialOrientation(BLA::Matrix<3, 1> accel, BLA
 
 BLA::Matrix<13, 1> SplitStateEstimator::fastGyroProp(BLA::Matrix<3,1> gyro, float curr_time) {
     BLA::Matrix<4, 1> last_relevant_times = {0, 2, 3, 4}; // Gyro prop, accel+mag+gps update
-    float dt = curr_time - vecMax(extractSub(lastCalcTimes, last_relevant_times));
+    float dt = curr_time - lastCalcTimes(0);
     
     float dt2 = dt/2.0f;
 
     BLA::Matrix<4, 1> p_q = extractSub(att_x, SplitMEKFInds::quat);
 
     BLA::Matrix<3, 1> unbiased_gyro = gyro - extractSub(att_x, SplitMEKFInds::gyroBias);
-    // OLD METHOD BROKEN BLA::Matrix<4, 1> new_q = quatMultiply(extractSub(x, SplitMEKFInds::quat), rotVec2dQuat(unbiased_gyro * dt));
-    // TODO: Need to test if can use euler-rod formula or first order approx
 
     BLA::Matrix<4, 1> new_q = {
         (p_q(0) - dt2*(unbiased_gyro(0))*p_q(1) - dt2*(unbiased_gyro(1))*p_q(2) - dt2*(unbiased_gyro(2))*p_q(3)),
@@ -632,6 +633,7 @@ BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b,
     float u_m_n = BLA::Norm(m_b);
     m_b = (m_b / u_m_n);
     BLA::Matrix<6, 1> unbiased_sens = vstack(a_b, m_b);
+    
     BLA::Matrix<4,1> q = extractSub(att_x, SplitMEKFInds::quat);
 
 
@@ -662,8 +664,8 @@ BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b,
     BLA::Matrix<6, 6> R;
     R.Fill(0);
     //tune ts
-    float sigma_mag = 0.8f;
-    float sigma_accel = 0.5f;
+    float sigma_mag = 0.08f;
+    float sigma_accel = 0.05f;
     //why wont diag wrk ugh
     R(0, 0) = sigma_accel * sigma_accel;
     R(1, 1) = sigma_accel * sigma_accel;
