@@ -1,7 +1,8 @@
 #pragma once
 
 #include "BasicLinearAlgebra.h"
-
+#include "CircularBuffer.hpp"
+#include <math.h>
 #include "kfConsts.h"
 #include <cstdint>
 #include "QuaternionUtils.h"
@@ -45,6 +46,7 @@ inline BLA::Matrix<3, 1> magBias = {mb_x, mb_y, mb_z};
 
 constexpr int bb_p = 9;
 inline BLA::Matrix<1, 1> baroBias = {bb_p};
+
 
 
 
@@ -127,13 +129,20 @@ class SplitStateEstimator {
     template<int rows>
     BLA::Matrix<10, 1> ekfPVCalcErrorInject(BLA::Matrix<rows, 1> &sens_reading, BLA::Matrix<rows, 10> H, BLA::Matrix<rows, 1> h, BLA::Matrix<rows, rows> R);
     
-  float solveAltitude(float pressure);
 
 
     // Sadness
     // Angular vel in radians on each axis
     // Angle from vert in radians of just pitch and yaw
-    bool shouldKill(BLA::Matrix<3, 1> angular_vels, float angle_from_vert);
+    int shouldKill(BLA::Matrix<3, 1> angular_vels, float angle_from_vert);
+
+    float DEG_RAD = M_PI / 180.0f;
+
+
+    float solveAltitude(float pressure);
+
+
+    BLA::Matrix<3, 1> computeAverageAngularRates();
 
   private:
     // School stats
@@ -198,6 +207,10 @@ class SplitStateEstimator {
 
     BLA::Matrix<3, 1> R_gps_vel_diag_ned = {0.0025, 0.0025, 0.0225};
     BLA::Matrix<3, 1> R_gps_pos_diag_ned = {0.5625, 0.5625, 1.7161};
+
+    CircularBuffer<float, 200> r_buffer;
+    CircularBuffer<float, 200> p_buffer;
+    CircularBuffer<float, 200> y_buffer;
 
 
 };
