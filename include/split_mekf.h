@@ -127,7 +127,7 @@ class SplitStateEstimator {
     template<int rows>
     BLA::Matrix<10, 1> ekfPVCalcErrorInject(BLA::Matrix<rows, 1> &sens_reading, BLA::Matrix<rows, 10> H, BLA::Matrix<rows, 1> h, BLA::Matrix<rows, rows> R);
     
-  double solveAltitude(double pressure);
+  float solveAltitude(float pressure);
 
 
     // Sadness
