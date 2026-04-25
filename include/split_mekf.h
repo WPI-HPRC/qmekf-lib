@@ -106,6 +106,8 @@ class SplitStateEstimator {
     BLA::Matrix<13, 1> fastGyroProp(BLA::Matrix<3,1> gyro, float curr_time);
     BLA::Matrix<10, 1> fastAccelProp(BLA::Matrix<3,1> accel, float curr_time);
 
+    void falseUpdateVectors(float curr_time);
+
     // EKF update functions
     BLA::Matrix<12, 12> AttekfPredict(float curr_time);
     BLA::Matrix<10, 10> PVekfPredict(float curr_time);

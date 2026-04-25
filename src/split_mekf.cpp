@@ -268,6 +268,11 @@ BLA::Matrix<10, 1> SplitStateEstimator::fastAccelProp(BLA::Matrix<3, 1> accel, f
     return pv_x;
 }
 
+void SplitStateEstimator::falseUpdateVectors(float curr_time) {
+    lastCalcTimes(2, 0) = curr_time;
+    lastCalcTimes(3, 0) = curr_time;
+}
+
 // TODO test
 BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     BLA::Matrix<2, 1> att_update_relevant_times = {2, 3};
@@ -787,6 +792,8 @@ int SplitStateEstimator::shouldKill(BLA::Matrix<3, 1> angular_vels, float angle_
         }
     }
 
+
+
     BLA::Matrix<4, 1> orientation = get_quat_ned();
     BLA::Matrix<3, 1> roll_axis = {1, 0, 0};
     BLA::Matrix<4, 1> nominal = nominal_rocket_ned_orientation;
@@ -794,6 +801,8 @@ int SplitStateEstimator::shouldKill(BLA::Matrix<3, 1> angular_vels, float angle_
     BLA::Matrix<3, 1> expected_x = qRot(nominal, roll_axis);
     // Angle between two vectors formula
     float theta = std::acos(vecDot(est_x, expected_x));
+
+    // SerialUSB.print(gb(0, 0), 7); SerialUSB.print(", "); SerialUSB.print(gb(1, 0), 7); SerialUSB.print(", "); SerialUSB.print(gb(2, 0), 7);
 
     // The axis for which it is off. Good to have, but not used here
     BLA::Matrix<3, 1> axis = BLA::CrossProduct(roll_axis, est_x);
@@ -803,6 +812,7 @@ int SplitStateEstimator::shouldKill(BLA::Matrix<3, 1> angular_vels, float angle_
     BLA::Matrix<3, 1> inds = {0, 1, 2};
     BLA::Matrix<3, 1> P_body = get_dcmned2ecef() * extractSub(P, inds); // For our MEKF, covariance defined in inertial frame, kinda L
     float P_added_theta = std::hypotf(P_body(1, 0), P_body(2, 0));
+    // SerialUSB.print(". P_added_theta: "); SerialUSB.print(P_added_theta);
     // Linearized. Kinda works. Should do hypot or max, or other distance metric, idk
     float sigma = 1.0f; // idk, tbd
     float total_theta = theta + sigma * P_added_theta;
