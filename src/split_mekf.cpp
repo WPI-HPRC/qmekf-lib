@@ -329,7 +329,7 @@ BLA::Matrix<12, 12> SplitStateEstimator::AttekfPredict(float curr_time) {
     // BLA::Matrix<3, 3> mag_bias_var_diag = toDiag(mag_bias_var);
 
     // SerialUSB.print("att_dt: ");
-    SerialUSB.println(att_dt);
+    //SerialUSB.println(att_dt);
 
     Q_d.Submatrix<3, 3>(SplitMEKFInds::q_w, SplitMEKFInds::q_w) = gyro_var_diag * att_dt + gyro_bias_var_diag * (float) (std::pow(att_dt, 3) / 3.0);
     Q_d.Submatrix<3, 3>(0, SplitMEKFInds::gb_x - 1) = -1.0f * gyro_bias_var_diag * (float) (std::pow(att_dt, 2) / 2.0);
@@ -593,34 +593,25 @@ BLA::Matrix<13, 1> SplitStateEstimator::runGPSMagAttUpdate(BLA::Matrix<3, 1> gps
 BLA::Matrix<13, 1> SplitStateEstimator::runMagUpdate(BLA::Matrix<3, 1> m_b, float curr_time) {
 
     BLA::Matrix<3, 1> unbiased_mag = m_b - extractSub(att_x, SplitMEKFInds::magBias);
-    // float u_a_n = BLA::Norm(unbiased_accel);
-    // unbiased_accel = (unbiased_accel / u_a_n);
+
+    float u_m_n = BLA::Norm(m_b);
+    m_b = (m_b / u_m_n);
+
     BLA::Matrix<4,1> q = extractSub(att_x, SplitMEKFInds::quat);
 
-    float u_m_n = BLA::Norm(unbiased_mag);
-    unbiased_mag = (unbiased_mag / u_m_n);
-    // float h_a_n = BLA::Norm(h_accel);
-    // h_accel = h_accel / h_a_n;
     float u_mag_n = BLA::Norm(m_i_ecef(launch_dcmned2ecef));
     BLA::Matrix<3, 1> m_i = (m_i_ecef(launch_dcmned2ecef) / u_mag_n);
+
     BLA::Matrix<3, 1> h_mag = quat2DCMInv(q) * m_i;
+    h_mag   /= BLA::Norm(h_mag);
 
     BLA::Matrix<3, 12> H_mag;
     H_mag.Fill(0);
     H_mag.Submatrix<3, 3>(0, 0) = skewSymmetric(h_mag);
-    H_mag.Submatrix<3, 3>(0, SplitMEKFInds::mb_x - 1) = I_3;
+    //H_mag.Submatrix<3, 3>(0, SplitMEKFInds::mb_x - 1) = I_3;
 
     BLA::Matrix<3, 3> R;
     R.Fill(0);
-    //tune ts
-
-    // float omega = BLA::Norm(get_gyro_prev());
-
-    // float sigma_base = 0.8f;   // trust when still
-    // float k = 5.0f;            // scaling factor
-
-    // float sigma_mag = sigma_base + k * omega;
-
     float sigma_mag = 1.0f;
     float sigma_n = sigma_mag;
     //why wont diag wrk ugh
@@ -628,6 +619,7 @@ BLA::Matrix<13, 1> SplitStateEstimator::runMagUpdate(BLA::Matrix<3, 1> m_b, floa
     R(1, 1) = sigma_n * sigma_n;
     R(2, 2) = sigma_n * sigma_n;
 
+    lastCalcTimes(2) = curr_time;
     lastCalcTimes(3) = curr_time;
     return ekfAttCalcErrorInject(unbiased_mag, H_mag, h_mag, R);
 }
@@ -670,7 +662,7 @@ BLA::Matrix<13, 1> SplitStateEstimator::runAccelMagUpdate(BLA::Matrix<3, 1> a_b,
     BLA::Matrix<6, 6> R;
     R.Fill(0);
     //tune ts
-    float sigma_mag = 2.0f;
+    float sigma_mag = 0.8f;
     float sigma_accel = 0.5f;
     //why wont diag wrk ugh
     R(0, 0) = sigma_accel * sigma_accel;
