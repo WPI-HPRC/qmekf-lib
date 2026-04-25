@@ -225,21 +225,21 @@ BLA::Matrix<3, 1> QuaternionUtils::qInvRot(const BLA::Matrix<4, 1> &q, BLA::Matr
 
 BLA::Matrix<3, 1> QuaternionUtils::g_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef) {
     // TODO one day put in the world model and take in position
-    BLA::Matrix<3, 1> grav_ned = {0, 0, 9.8};
+    BLA::Matrix<3, 1> grav_ned = {0, 0, 9.80665};
     return dcm_ned2ecef * grav_ned;
 }
 
 
 BLA::Matrix<3, 1> QuaternionUtils::m_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef) {
     // TODO one day put in the world model and take in position. School vals for now
-    BLA::Matrix<3, 1> mag_ned = {19.983111, -4.8716, 46.9986145};
+    BLA::Matrix<3, 1> mag_ned = {20.31748, -4.82820, 46.453850};
     return dcm_ned2ecef * mag_ned;
 }
 
 
 BLA::Matrix<3, 1> QuaternionUtils::normal_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef) {
     // TODO one day put in the world model. See g_i notes
-    BLA::Matrix<3, 1> normal_ned = {0, 0, -9.8};
+    BLA::Matrix<3, 1> normal_ned = {0, 0, -9.80665};
     return dcm_ned2ecef * normal_ned;
 }
 

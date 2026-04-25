@@ -137,10 +137,10 @@ class SplitStateEstimator {
 
   private:
     // School stats
-    BLA::Matrix<3, 3> launch_dcmned2ecef = {-0.2100, 0.9500, -0.2310, 0.6391, 0.3121, 0.7030, 0.7399, 0, -0.6727};
+    BLA::Matrix<3, 3> launch_dcmned2ecef = {-0.202258901698433, 0.952260795334059, -0.228671629970771, 0.630894938464350, 0.305285731192510, 0.713282692170725, 0.749041329503124, 0, -0.662523272569495}; // {-0.2100, 0.9500, -0.2310, 0.6391, 0.3121, 0.7030, 0.7399, 0, -0.6727};
     BLA::Matrix<3, 3> dcmned2ecef = launch_dcmned2ecef;
-    BLA::Matrix<3, 1> launch_ecef = {1475354.0f, -4490428.0f, 4268181.0f};
-    BLA::Matrix<3, 1> launch_lla = {42.27405, -71.81174, 10};
+    BLA::Matrix<3, 1> launch_ecef = {1460648.839878645, -4556120.656322157, 4203563.054612514}; // {1475354.0f, -4490428.0f, 4268181.0f};
+    BLA::Matrix<3, 1> launch_lla = {41.492597, -72.224645, 10}; // {42.27405, -71.81174, 10};
     BLA::Matrix<4, 1> nominal_rocket_ned_orientation = {1.414213562, 0, 1.414213562, 0}; // Just aligning x with up, roll axis ignored. value is sqrt(2) / 2
 
 
@@ -154,7 +154,7 @@ class SplitStateEstimator {
 
     // Vel, pos, accelBias, baroBias                              
     BLA::Matrix<10, 1> pv_x = {0, 0, 0,
-                                1475354.0f, -4490428.0f, 4268181.0f,
+                                1460648.839878645, -4556120.656322157, 4203563.054612514,
                                 0, 0, 0,
                                 0};
 
