@@ -232,7 +232,8 @@ BLA::Matrix<3, 1> QuaternionUtils::g_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef
 
 BLA::Matrix<3, 1> QuaternionUtils::m_i_ecef(const BLA::Matrix<3, 3> dcm_ned2ecef) {
     // TODO one day put in the world model and take in position. School vals for now
-    BLA::Matrix<3, 1> mag_ned = {20.31748, -4.82820, 46.453850};
+    // Connecticut: {20.31748, -4.82820, 46.453850}
+    BLA::Matrix<3, 1> mag_ned = {20.003728, -4.8656304, 46.94440};
     return dcm_ned2ecef * mag_ned;
 }
 
@@ -417,6 +418,7 @@ BLA::Matrix<4, 1> QuaternionUtils::qDot(const BLA::Matrix<4, 1> &p, const BLA::M
 float QuaternionUtils::vecDot(const BLA::Matrix<3, 1> &v1, const BLA::Matrix<3, 1> &v2) {
     return v1(0, 0) * v2(0, 0) + v1(1, 0) * v2(1, 0) + v1(2, 0) * v2(2, 0);
 }
+
 
 
 

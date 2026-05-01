@@ -165,21 +165,29 @@ float SplitStateEstimator::getLastPVUpdate() {
 
 BLA::Matrix<3, 1> SplitStateEstimator::reorient_asm(BLA::Matrix<3, 1> value) {
     // Note: For the ASM
+    BLA::Matrix<3, 3> rocket_matrix = {0, 0, -1.0f,
+                                    0, 1.0f, 0,
+                                    -1.0f, 0, 0};
+
     BLA::Matrix<3, 3> reorient_matrix = {-1.0f, 0, 0,
                                     0, -1.0f, 0,
                                     0, 0, 1};
 
-    return  reorient_matrix * value;
+    return rocket_matrix * reorient_matrix * value;
 }
 
 BLA::Matrix<3, 1> SplitStateEstimator::reorient_lis(BLA::Matrix<3, 1> value) {
     // Note: For the LIS
     // y multiply by -1
+    BLA::Matrix<3, 3> rocket_matrix = {0, 0, -1.0f,
+                                    0, 1.0f, 0,
+                                    -1.0f, 0, 0};
+
     BLA::Matrix<3, 3> reorient_matrix = {0, 1, 0,
                                     1, 0, 0,
                                     0, 0, 1};
 
-    return  reorient_matrix * value;
+    return  rocket_matrix * reorient_matrix * value;
 }
 
 
@@ -222,6 +230,9 @@ BLA::Matrix<13, 1> SplitStateEstimator::fastGyroProp(BLA::Matrix<3,1> gyro, floa
     att_x = setSub(att_x, SplitMEKFInds::quat, new_q);
     gyro_prev = unbiased_gyro;
     lastCalcTimes(0) = curr_time;
+    r_buffer.push(unbiased_gyro(0, 0));
+    p_buffer.push(unbiased_gyro(1, 0));
+    y_buffer.push(unbiased_gyro(2, 0));
 
     // DBG.println(unbiased_gyro);
     // DBG.print(new_q(0)); DBG.print(", "); DBG.print(new_q(1)); DBG.print(", "); DBG.print(new_q(2)); DBG.print(", "); DBG.println(new_q(3));
@@ -786,23 +797,16 @@ int SplitStateEstimator::shouldKill(BLA::Matrix<3, 1> angular_vels, float angle_
 
     BLA::Matrix<3, 1> gyro_avg_rates = computeAverageAngularRates();
 
-    for (int i = 0; i < 3; i++) {
-        if (std::abs(gyro_avg_rates(i, 0)) > angular_vels(i, 0)) {
-            return i + 1;
-        }
-    }
-
 
 
     BLA::Matrix<4, 1> orientation = get_quat_ned();
     BLA::Matrix<3, 1> roll_axis = {1, 0, 0};
-    BLA::Matrix<4, 1> nominal = nominal_rocket_ned_orientation;
     BLA::Matrix<3, 1> est_x = qRot(orientation, roll_axis);
-    BLA::Matrix<3, 1> expected_x = qRot(nominal, roll_axis);
+    BLA::Matrix<3, 1> expected_x = {0, 0, -1};
     // Angle between two vectors formula
     float theta = std::acos(vecDot(est_x, expected_x));
 
-    // SerialUSB.print(gb(0, 0), 7); SerialUSB.print(", "); SerialUSB.print(gb(1, 0), 7); SerialUSB.print(", "); SerialUSB.print(gb(2, 0), 7);
+    // SerialUSB.print(gyro_avg_rates(0, 0), 7); SerialUSB.print(", "); SerialUSB.print(gyro_avg_rates(1, 0), 7); SerialUSB.print(", "); SerialUSB.print(gyro_avg_rates(2, 0), 7);
 
     // The axis for which it is off. Good to have, but not used here
     BLA::Matrix<3, 1> axis = BLA::CrossProduct(roll_axis, est_x);
@@ -817,9 +821,15 @@ int SplitStateEstimator::shouldKill(BLA::Matrix<3, 1> angular_vels, float angle_
     float sigma = 1.0f; // idk, tbd
     float total_theta = theta + sigma * P_added_theta;
 
-    // if (total_theta > angle_from_vert) {
-    //     return 0;
-    // }
+    if (total_theta > angle_from_vert) {
+        return 0;
+    }
+
+    for (int i = 0; i < 3; i++) {
+        if (std::abs(gyro_avg_rates(i, 0)) > angular_vels(i, 0)) {
+            return i + 1;
+        }
+    }
 
     return -1;
 }
