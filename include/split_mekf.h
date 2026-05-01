@@ -146,6 +146,8 @@ class SplitStateEstimator {
 
     BLA::Matrix<3, 1> computeAverageAngularRates();
 
+    void setQuat(BLA::Matrix<4, 1> quat);
+
   private:
     // School stats
     // Connecticut: {-0.202258901698433, 0.952260795334059, -0.228671629970771, 0.630894938464350, 0.305285731192510, 0.713282692170725, 0.749041329503124, 0, -0.662523272569495}
