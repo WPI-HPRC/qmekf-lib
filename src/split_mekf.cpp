@@ -879,6 +879,10 @@ void SplitStateEstimator::setQuat(BLA::Matrix<4, 1> quat) {
     setSub(att_x, SplitMEKFInds::quat, quat);
 }
 
+void SplitStateEstimator::setQuatNED(BLA::Matrix<4, 1> quat) {
+    setSub(att_x, SplitMEKFInds::quat, dcm2quat(get_dcmned2ecef() * quat2DCM(quat)));
+}
+
 
 // BLA::Matrix<20, 1> SplitStateEstimator::runBaroUpdate(BLA::Matrix<1, 1> baro, float curr_time) {
 
