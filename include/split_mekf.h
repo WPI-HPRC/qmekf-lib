@@ -92,6 +92,8 @@ class SplitStateEstimator {
     void set_dcmned2ecef(BLA::Matrix<3, 3> new_dcmned2ecef);
     float getGs();
 
+    BLA::Matrix<3, 3> get_ned_dcm();
+
     float getLastAttProp();
     float getLastAttUpdate();
     float getLastPVProp();

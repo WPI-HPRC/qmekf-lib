@@ -83,6 +83,10 @@ BLA::Matrix<3, 1> SplitStateEstimator::get_rpy_ned() {
     return quat2RPY(dcm2quat(~get_dcmned2ecef() * quat2DCM(extractSub(att_x, SplitMEKFInds::quat))));
 }
 
+BLA::Matrix<3, 3> SplitStateEstimator::get_ned_dcm() {
+    return ~get_dcmned2ecef() * quat2DCM(extractSub(att_x, SplitMEKFInds::quat));
+}
+
 BLA::Matrix<3, 1> SplitStateEstimator::get_vel_ecef() {
     
     return extractSub(pv_x, SplitMEKFInds::vel);
