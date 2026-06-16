@@ -888,26 +888,44 @@ void SplitStateEstimator::setQuatNED(BLA::Matrix<4, 1> quat) {
 }
 
 
-// BLA::Matrix<20, 1> SplitStateEstimator::runBaroUpdate(BLA::Matrix<1, 1> baro, float curr_time) {
+// Barometric pressure update for the 10-state PV filter
+// (pv_x = [vel(0-2), pos(3-5), accelBias(6-8), baroBias(9)]).
+// `baro` is the raw sensor pressure in hPa.
+BLA::Matrix<10, 1> SplitStateEstimator::runBaroUpdate(BLA::Matrix<1, 1> baro, float curr_time) {
+    // Sensor reports hPa; the barometric model works in Pa.
+    BLA::Matrix<1, 1> baro_pa = {baro(0, 0) * 100.0f};
 
-//     BLA::Matrix<3, 1> lla = ecef2lla(extractSub(x, SplitMEKFInds::pos));
+    BLA::Matrix<3, 1> lla = ecef2lla(get_pos_ecef());
+    float alt = lla(2);
 
-//     BLA::Matrix<1, 1> h_baro = {std::pow(lps22_const::P0 * (1.0f + (lps22_const::L * lla(2))) / lps22_const::T0, -1.0f * lps22_const::g_e * lps22_const::M / (lps22_const::R * lps22_const::L))};
+    // Standard barometric formula: P = P0 * (1 + L*h/T0)^(-g*M/(R*L)),
+    // plus the estimated baro bias.
+    float base = 1.0f + (lps22_const::L * alt) / lps22_const::T0;
+    float expo = -1.0f * lps22_const::g_e * lps22_const::M /
+                 (lps22_const::R * lps22_const::L);
+    float P_model = lps22_const::P0 * std::pow(base, expo);
 
-//     float dP_dh = (-1.0f * lps22_const::g_e * h_baro(0, 0) * lps22_const::M) / (lps22_const::R * (lps22_const::T0 + lps22_const::L * lla(2)));
-//     BLA::Matrix<3, 1> dh_decef = {cosd(lla(0)) * cosd(lla(1)), cosd(lla(0)) * sind(lla(1)), sind(lla(0))};
-//     BLA::Matrix<3, 1> dP_decef = dP_dh * dh_decef;
+    float baroBias = pv_x(SplitMEKFInds::bb_p);
+    BLA::Matrix<1, 1> h_baro = {P_model + baroBias};
 
-//     BLA::Matrix<1, 19> H_baro;
-//         H_baro.Fill(0);
-//         H_baro.Submatrix<1, 3>(0, SplitMEKFInds::bb_p - 1) = ~dP_decef;
-//         H_baro(0, 18) = 1.0f;
+    // dP/dh chained to ECEF position via the geodetic "up" direction.
+    float dP_dh = -1.0f * lps22_const::g_e * P_model * lps22_const::M /
+                  (lps22_const::R * (lps22_const::T0 + lps22_const::L * alt));
+    BLA::Matrix<3, 1> dh_decef = {cosd(lla(0)) * cosd(lla(1)),
+                                  cosd(lla(0)) * sind(lla(1)),
+                                  sind(lla(0))};
+    BLA::Matrix<3, 1> dP_decef = dP_dh * dh_decef;
 
-//     BLA::Matrix<1, 1> R = lps22_const::baro_var;
+    BLA::Matrix<1, 10> H_baro;
+    H_baro.Fill(0);
+    H_baro.Submatrix<1, 3>(0, SplitMEKFInds::p_x) = ~dP_decef;
+    H_baro(0, SplitMEKFInds::bb_p) = 1.0f;
 
-//     lastCalcTimes(5) = curr_time;
-//     return ekfCalcErrorInject(baro, H_baro, h_baro, R);
-// }
+    BLA::Matrix<1, 1> R = lps22_const::baro_var;
+
+    lastCalcTimes(5) = curr_time;
+    return ekfPVCalcErrorInject(baro_pa, H_baro, h_baro, R);
+}
 
 // template<int rows>
 // BLA::Matrix<20, 1> SplitStateEstimator::ekfCalcErrorInject(BLA::Matrix<rows, 1> &sens_reading, BLA::Matrix<rows, 19> H, BLA::Matrix<rows, 1> h, BLA::Matrix<rows, rows> R) {
