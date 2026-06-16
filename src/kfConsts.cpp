@@ -13,7 +13,9 @@ namespace asm330_const {
 }
 
 namespace lps22_const {
-    BLA::Matrix<1, 1> baro_var = {0.0f};
+    // Pressure measurement noise variance [Pa^2] (~5 Pa std). Must be non-zero
+    // or the baro Kalman gain (Inverse(S)) blows up. Tune on the bench.
+    BLA::Matrix<1, 1> baro_var = {25.0f};
     BLA::Matrix<1, 1> baro_bias = {0.0f};
 }
 
