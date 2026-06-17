@@ -888,6 +888,7 @@ void SplitStateEstimator::setQuatNED(BLA::Matrix<4, 1> quat) {
 }
 
 
+// Note this is probably wrong and is AI generated. Either numerically in real time or analytically using sympy derive the jacobian and use a spherical approximation
 // Barometric pressure update for the 10-state PV filter
 // (pv_x = [vel(0-2), pos(3-5), accelBias(6-8), baroBias(9)]).
 // `baro` is the raw sensor pressure in hPa.
